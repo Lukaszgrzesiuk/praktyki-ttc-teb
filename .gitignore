@@ -1,0 +1,40 @@
+# ==========================================
+# .NET 10 / C# Specifics
+# ==========================================
+bin/
+obj/
+out/
+appsettings.Development.json
+UserSecrets/
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.doccache
+
+# ==========================================
+# Angular / Node.js Specifics
+# ==========================================
+node_modules/
+dist/
+.angular/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# ==========================================
+# Environment & OS Specifics
+# ==========================================
+.env
+.env.local
+.env.*.local
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# VS Code Specifics
+# ==========================================
+.history/
+*.code-workspace
