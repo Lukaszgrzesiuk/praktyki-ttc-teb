@@ -5,3 +5,4 @@ Michalak Szymon
 Mateusz Ryba
 Adrian Zając
 Łukasz Grzesiuk
+Michał Węglarz
