@@ -3,4 +3,4 @@ Koziarski Damian
 Mołczan Krystian
 Michalak Szymon
 Mateusz Ryba
-Łukasz Grzesiuk
+Adrian Zając
