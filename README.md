@@ -1,2 +1,2 @@
 # praktyki-ttc-teb
-mateusz ryba
+Mateusz Ryba
