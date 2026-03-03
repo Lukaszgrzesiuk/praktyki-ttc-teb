@@ -1,2 +1,2 @@
 # praktyki-ttc-teb
-high school practice
+Koziarski Damian
