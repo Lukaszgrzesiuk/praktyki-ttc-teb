@@ -1,0 +1,35 @@
+/* RAMKA TEKSTOWA */
+textarea {
+  width: 100%; 
+  box-sizing: border-box; 
+  height: 100px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: none;
+  display: block;
+  margin: 10px 0;
+}
+
+/* PRZYCISKI */
+button {
+  background-color: #3498db; 
+  color: white;
+  border: none;
+  padding: 10px 15px;      
+  margin: 1px 0;          
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 670;
+  /* Zmienione na 'all', żeby kolor i cień płynnie się pojawiały */
+  transition: all 0.3s ease; 
+  width: 140px;            
+  display: block;          
+  text-align: center;      
+}
+
+/* Efekt najechania z przyciemnieniem i poświatą */
+button:hover {
+  background-color: #1f618d; 
+  box-shadow: 0 0 12px rgba(52, 152, 219, 0.6); 
+}

@@ -1,0 +1,54 @@
+<div class="main-container">
+  <header class="top-bar">
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Szukaj notatek..." class="search-input">
+    </div>
+  </header>
+
+  <div class="content-layout">
+    <aside class="left-sidebar">
+      <div class="panel-header">AI Gemini Chat</div>
+      <app-note-creator></app-note-creator>
+    </aside>
+
+    <main class="center-content">
+      <div class="center-wrapper">
+        @if (!pokazFormularz) {
+          <button class="huge-add-btn" (click)="toggleFormularz()">
+            Dodaj notatkę
+          </button>
+        } @else {
+          <div class="note-form-area">
+            <div class="input-row">
+              <label>Tytuł:</label>
+              <input type="text" [(ngModel)]="nowyTytul" placeholder="Wpisz tytuł...">
+            </div>
+
+            <div class="input-row">
+              <label>Treść:</label>
+              <textarea [(ngModel)]="nowaTresc" rows="10" placeholder="Wpisz treść..."></textarea>
+            </div>
+
+            <div class="save-footer">
+               <button class="standard-blue-btn" (click)="zapiszNowa()">Zapisz notatkę</button>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+
+    <aside class="right-sidebar">
+  <!-- <div class="panel-header">Historia notatek</div> -->
+  
+  <!-- @for (item of historiaNotatek; track item.tytul) {
+    <details class="collapsible-note">
+      <summary>{{ item.tytul }}</summary>
+      <p>{{ item.tresc }}</p>
+    </details>
+  } @empty {
+    <p>Brak zapisanych notatek.</p>
+  } -->
+</aside>
+  </div>
+</div>
