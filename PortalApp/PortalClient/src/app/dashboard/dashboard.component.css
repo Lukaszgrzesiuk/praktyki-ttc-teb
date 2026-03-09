@@ -1,0 +1,24 @@
+.main-container { display: flex; flex-direction: column; height: 100vh; background: #f4f7fa; font-family: sans-serif; }
+.top-bar { height: 60px; background: white; border-bottom: 1px solid #ddd; display: flex; align-items: center; padding: 0 20px; }
+.content-layout { display: flex; flex: 1; overflow: hidden; }
+
+/* Paski boczne */
+.left-sidebar, .right-sidebar { width: 300px; background: white; border-left: 1px solid #ddd; border-right: 1px solid #ddd; overflow-y: auto; display: flex; flex-direction: column; }
+
+/* Środek */
+.center-content { flex: 1; padding: 40px; display: flex; justify-content: center; overflow-y: auto; }
+.huge-add-btn { padding: 30px 60px; font-size: 20px; background: white; border: 2px dashed #ccc; cursor: pointer; border-radius: 10px; }
+.huge-add-btn:hover { border-color: #3498db; color: #3498db; }
+
+/* Formularz */
+.note-form-area { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+.styled-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
+.save-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+.standard-blue-btn { background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+.cancel-btn { background: transparent; border: 1px solid #ddd; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+
+/* Notatki */
+.panel-header { padding: 15px; background: #fafafa; font-weight: bold; border-bottom: 1px solid #eee; }
+.collapsible-note { border-bottom: 1px solid #eee; }
+.collapsible-note summary { padding: 15px; cursor: pointer; background: white; }
+.note-content { padding: 15px; background: #f9f9f9; color: #555; font-size: 0.9em; }
