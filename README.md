@@ -2,4 +2,7 @@
 Koziarski Damian
 Mołczan Krystian
 Michalak Szymon
-Koziarski Damian - new
+Mateusz Ryba
+Adrian Zając
+Łukasz Grzesiuk
+Michał Węglarz
