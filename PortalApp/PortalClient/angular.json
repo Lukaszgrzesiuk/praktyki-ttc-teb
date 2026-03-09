@@ -3,7 +3,11 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
+<<<<<<< koziarski-damian
+    "analytics": "3b890abc-bc4f-407a-8669-d19a28f6001a"
+=======
     "analytics": false
+>>>>>>> main
   },
   "newProjectRoot": "projects",
   "projects": {
