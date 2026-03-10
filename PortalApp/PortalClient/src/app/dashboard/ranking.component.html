@@ -1,0 +1,45 @@
+<div class="rating-box">
+  <h3>Rate your note</h3>
+
+  <div class="slider-group">
+    <div class="label-row">
+      <label>How helpful is it?</label>
+      <span class="current-emoji">{{ getEmoji(helpfulness) }} ({{ helpfulness }}/10)</span>
+    </div>
+    
+    <input 
+      type="range" 
+      min="1" 
+      max="10" 
+      step="1" 
+      [(ngModel)]="helpfulness" 
+      class="emoji-slider"
+    >
+    
+    <div class="slider-ends">
+      <span>😡</span>
+      <span>🥰</span>
+    </div>
+  </div>
+
+  <div class="slider-group">
+    <div class="label-row">
+      <label>How easy was it to create?</label>
+      <span class="current-emoji">{{ getEmoji(easeOfCreation) }} ({{ easeOfCreation }}/10)</span>
+    </div>
+    
+    <input 
+      type="range" 
+      min="1" 
+      max="10" 
+      step="1" 
+      [(ngModel)]="easeOfCreation" 
+      class="emoji-slider"
+    >
+    
+    <div class="slider-ends">
+      <span>😡</span>
+      <span>🥰</span>
+    </div>
+  </div>
+</div>
