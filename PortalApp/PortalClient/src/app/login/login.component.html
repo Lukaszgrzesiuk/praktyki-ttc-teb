@@ -1,78 +1,73 @@
-<div class="strona-pojemnik">
- 
-  <h1>Notatker.ai</h1>
+<div class="page-container">
+  
+  <h1>NoteTaker.ai</h1>
 
-
-  @if (!pokazRejestracje) {
-    <div class="formularz-ramka">
+  @if (!showRegistration) {
+    <div class="form-container">
       <h2>Log in</h2>
-     
-      <form [formGroup]="loginForm">
-        <div class="pole-grupowe">
+      
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+        <div class="form-group">
           <label>Login:</label>
           <input type="text" formControlName="login">
         </div>
-       
-        <div class="pole-grupowe">
+        
+        <div class="form-group">
           <label>Password:</label>
           <input type="password" formControlName="password">
         </div>
-       
-        <button type="submit" class="glowny-przycisk">Log in</button>
+        
+        <button type="submit" class="main-btn">Log in</button>
       </form>
 
-
-      <div class="dolny-tekst">
+      <div class="bottom-text">
         <span>Don't have an account? </span>
-        <button type="button" class="przycisk-link" (click)="przelaczWidok()">Sign up</button>
+        <button type="button" class="link-btn" (click)="toggleView()">Sign up</button>
       </div>
     </div>
   }
 
-
-  @if (pokazRejestracje) {
-    <div class="formularz-ramka">
+  @if (showRegistration) {
+    <div class="form-container">
       <h2>Sign up</h2>
-     
+      
       <form [formGroup]="registerForm">
-        <div class="pole-grupowe">
+        <div class="form-group">
           <label>First Name:</label>
           <input type="text" formControlName="firstName">
         </div>
-       <div class="pole-grupowe">
+        <div class="form-group">
           <label>Last Name:</label>
           <input type="text" formControlName="lastName">
         </div>
-       
-        <div class="pole-grupowe">
+        
+        <div class="form-group">
           <label>Login:</label>
           <input type="text" formControlName="login">
         </div>
-       
-        <div class="pole-grupowe">
+        
+        <div class="form-group">
           <label>Email:</label>
           <input type="email" formControlName="email">
         </div>
-       
-        <div class="pole-grupowe">
+        
+        <div class="form-group">
           <label>Password:</label>
           <input type="password" formControlName="password">
         </div>
-       
-        <div class="pole-grupowe">
+        
+        <div class="form-group">
           <label>Retype Password:</label>
           <input type="password" formControlName="retypePassword">
         </div>
-       
-        <button type="submit" class="glowny-przycisk">Sign up</button>
+        
+        <button type="submit" class="main-btn">Sign up</button>
       </form>
 
-
-      <div class="dolny-tekst">
+      <div class="bottom-text">
         <span>Already have an account? </span>
-        <button type="button" class="przycisk-link" (click)="przelaczWidok()">Log in</button>
+        <button type="button" class="link-btn" (click)="toggleView()">Log in</button>
       </div>
     </div>
   }
 </div>
-

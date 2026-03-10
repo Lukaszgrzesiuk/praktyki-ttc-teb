@@ -8,7 +8,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "src/app/dashboard/test - dashboard.component.ts.text"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]
