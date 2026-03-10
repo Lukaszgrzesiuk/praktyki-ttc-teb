@@ -1,23 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-
+import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-login',
   standalone: true,
   imports: [ReactiveFormsModule],
-  templateUrl: './login.app.html',
-  styleUrl: './login.app.css'
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
 })
-export class AppComponent {
-  pokazRejestracje = false;
+export class LoginComponent {
+  private router = inject(Router);
 
+  showRegistration = false;
 
   loginForm = new FormGroup({
     login: new FormControl(''),
     password: new FormControl('')
   });
-
 
   registerForm = new FormGroup({
     firstName: new FormControl(''),
@@ -28,8 +28,11 @@ export class AppComponent {
     retypePassword: new FormControl('')
   });
 
+  toggleView() {
+    this.showRegistration = !this.showRegistration;
+  }
 
-  przelaczWidok() {
-    this.pokazRejestracje = !this.pokazRejestracje;
+  onLogin() {
+    this.router.navigate(['/dashboard']);
   }
 }

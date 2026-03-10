@@ -2,7 +2,7 @@
   <header class="top-bar">
     <div class="search-container">
       <span class="search-icon">🔍</span>
-      <input type="text" placeholder="Szukaj..." class="search-input">
+      <input type="text" placeholder="Search..." class="search-input">
     </div>
   </header>
 
@@ -11,26 +11,26 @@
     <aside class="left-sidebar">
       <div class="panel-header">Menu</div>
       <p style="padding: 20px; color: gray;">
-        Tu będzie Twój Chat AI (dodamy go później)
+        Here will be your AI chat (we'll add it later)
       </p>
     </aside>
 
     <main class="center-content">
       <div class="center-wrapper">
-        @if (!pokazFormularz) {
-          <button class="huge-add-btn" (click)="toggleFormularz()">+ Dodaj notatkę</button>
+        @if (!showForm) {
+          <button class="huge-add-btn" (click)="toggleForm()">+ Add Note</button>
         } @else {
           <div class="note-form-area">
-            <h2>Nowa notatka</h2>
+            <h2>New Note</h2>
             <div class="input-row">
-              <input [(ngModel)]="nowyTytul" placeholder="Tytuł..." class="styled-input">
+              <input [(ngModel)]="newTitle" placeholder="Title..." class="styled-input">
             </div>
             <div class="input-row">
-              <textarea [(ngModel)]="nowaTresc" rows="8" placeholder="Treść..." class="styled-input"></textarea>
+              <textarea [(ngModel)]="newContent" rows="8" placeholder="Content..." class="styled-input"></textarea>
             </div>
             <div class="save-footer">
-               <button class="cancel-btn" (click)="toggleFormularz()">Anuluj</button>
-               <button class="standard-blue-btn" (click)="zapiszNowa()">Zapisz</button>
+               <button class="cancel-btn" (click)="toggleForm()">Cancel</button>
+               <button class="standard-blue-btn" (click)="saveNewNote()">Save</button>
             </div>
           </div>
         }
@@ -38,17 +38,17 @@
     </main>
 
     <aside class="right-sidebar">
-      <div class="panel-header">Twoje Notatki</div>
+      <div class="panel-header">Your Notes</div>
       
-      @for (note of historiaNotatek; track note.id) {
+      @for (note of notesHistory; track note.id) {
         <details class="collapsible-note">
-          <summary>{{ note.tytul }} <small>{{ note.dataUtworzenia | date:'shortDate' }}</small></summary>
+          <summary>{{ note.title }} <small>{{ note.creationDate | date:'shortDate' }}</small></summary>
           <div class="note-content">
-            <p>{{ note.tresc }}</p>
+            <p>{{ note.content }}</p>
           </div>
         </details>
       } @empty {
-        <p style="padding: 20px; color: #888;">Brak notatek w bazie.</p>
+        <p style="padding: 20px; color: #888;">No notes in the database.</p>
       }
     </aside>
   </div>

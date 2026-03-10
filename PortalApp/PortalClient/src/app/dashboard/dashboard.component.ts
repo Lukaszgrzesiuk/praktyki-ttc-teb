@@ -1,54 +1,47 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-// Usunąłem NoteCreatorComponent stąd, bo go nie masz
-import { NoteService, Note } from '../services/note.service';
+import { DatePipe } from '@angular/common';
+
+export interface Note {
+  id: number;
+  title: string;       
+  content: string;     
+  creationDate: Date;  
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule], // Tu też usunąłem
+  imports: [FormsModule, DatePipe], 
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit {
-  pokazFormularz = false;
-  nowyTytul = '';
-  nowaTresc = '';
-  historiaNotatek: Note[] = [];
+export class DashboardComponent {
+  showForm: boolean = false;
+  newTitle: string = '';
+  newContent: string = '';
+  notesHistory: Note[] = [];
 
-  private noteService = inject(NoteService);
-
-  ngOnInit() {
-    this.pobierzNotatki();
+  toggleForm() {
+    this.showForm = !this.showForm;
+    
+    if (!this.showForm) {
+      this.newTitle = '';
+      this.newContent = '';
+    }
   }
 
-  pobierzNotatki() {
-    this.noteService.getNotes().subscribe({
-      next: (dane) => this.historiaNotatek = dane,
-      error: (err) => console.error('Błąd:', err)
-    });
-  }
-
-  toggleFormularz() {
-    this.pokazFormularz = !this.pokazFormularz;
-  }
-
-  zapiszNew() {
-    if (!this.nowyTytul || !this.nowaTresc) return;
-
-    const nowa: Note = {
-      tytul: this.nowyTytul,
-      tresc: this.nowaTresc,
-      uprawnienia: 'Publiczne',
-      autor: 'Użytkownik'
-    };
-
-    this.noteService.addNote(nowa).subscribe(() => {
-      this.nowyTytul = '';
-      this.nowaTresc = '';
-      this.pokazFormularz = false;
-      this.pobierzNotatki();
-    });
+  saveNewNote() {
+    if (this.newTitle.trim() || this.newContent.trim()) {
+      const newNote: Note = {
+        id: Date.now(), 
+        title: this.newTitle,
+        content: this.newContent,
+        creationDate: new Date()
+      };
+      
+      this.notesHistory.push(newNote);
+      this.toggleForm(); 
+    }
   }
 }
