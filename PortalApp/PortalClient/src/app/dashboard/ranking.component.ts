@@ -20,3 +20,4 @@ export class NoteRatingComponent {
     return this.emojis[rating - 1];
   }
 }
+// ok
