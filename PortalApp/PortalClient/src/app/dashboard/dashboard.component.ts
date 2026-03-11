@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NoteService } from '../services/note.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 export interface Note {
   id?: number;
@@ -13,10 +14,12 @@ export interface Note {
   autor?: string;
   dataUtworzenia?: string | Date;
   creationDate?: string | Date;
-  // Dodajemy miejsca na nasze pliki multimedialne
   photo?: File | null;
   video?: File | null;
   audio?: File | null;
+  photoUrl?: SafeUrl | null;
+  videoUrl?: SafeUrl | null;
+  audioUrl?: SafeUrl | null;
 }
 
 @Component({
@@ -32,12 +35,15 @@ export class DashboardComponent implements OnInit {
   newTitle: string = '';
   newContent: string = '';
 
-  // Zmienne do trzymania wybranych plików
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
 
+  // Nowa zmienna: trzyma link do zdjęcia, które użytkownik chce powiększyć
+  powiekszoneZdjecie: SafeUrl | null = null;
+
   private noteService = inject(NoteService);
+  private sanitizer = inject(DomSanitizer);
 
   ngOnInit() {
     this.fetchNotes();
@@ -54,7 +60,6 @@ export class DashboardComponent implements OnInit {
     this.showForm = !this.showForm;
   }
 
-  // Funkcja, która chwyta plik z komputera po kliknięciu
   onFileSelected(event: any, type: 'photo' | 'video' | 'audio') {
     const file = event.target.files[0];
     if (file) {
@@ -64,9 +69,26 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  // Funkcje do otwierania i zamykania zdjęcia na pełnym ekranie
+  otworzZdjecie(url: any) {
+    this.powiekszoneZdjecie = url;
+  }
+
+  zamknijZdjecie() {
+    this.powiekszoneZdjecie = null;
+  }
+
   saveNewNote() {
     if (!this.newTitle || !this.newContent) return;
     
+    let pUrl = null;
+    let vUrl = null;
+    let aUrl = null;
+
+    if (this.selectedPhoto) pUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedPhoto));
+    if (this.selectedVideo) vUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedVideo));
+    if (this.selectedAudio) aUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedAudio));
+
     const nowa: Note = {
       id: Math.floor(Math.random() * 1000), 
       title: this.newTitle,
@@ -77,16 +99,16 @@ export class DashboardComponent implements OnInit {
       autor: 'User',
       creationDate: new Date().toISOString(),
       dataUtworzenia: new Date().toISOString(),
-      // Zapisujemy pliki do naszej notatki
       photo: this.selectedPhoto,
       video: this.selectedVideo,
-      audio: this.selectedAudio
+      audio: this.selectedAudio,
+      photoUrl: pUrl,
+      videoUrl: vUrl,
+      audioUrl: aUrl
     };
 
-    // Nasz mock
     this.notesHistory.unshift(nowa);
     
-    // Czyszczenie formularza po zapisaniu
     this.newTitle = '';
     this.newContent = '';
     this.selectedPhoto = null;

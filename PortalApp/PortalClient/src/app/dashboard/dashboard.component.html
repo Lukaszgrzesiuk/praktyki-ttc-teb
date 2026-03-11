@@ -63,11 +63,22 @@
           <div class="note-content">
             <p>{{ note.content || note.tresc }}</p>
             
-            <div style="margin-top: 10px; display: flex; gap: 10px; font-size: 11px; font-weight: bold; color: #555;">
-              <span *ngIf="note.photo" style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px;">📎 Zdjęcie</span>
-              <span *ngIf="note.video" style="background: #e8f5e9; padding: 4px 8px; border-radius: 4px;">📎 Wideo</span>
-              <span *ngIf="note.audio" style="background: #fff3e0; padding: 4px 8px; border-radius: 4px;">📎 Audio</span>
+            <div *ngIf="note.photoUrl || note.videoUrl || note.audioUrl" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+              
+              <div *ngIf="note.photoUrl">
+                <img [src]="note.photoUrl" (click)="otworzZdjecie(note.photoUrl)" alt="Zdjecie notatki" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Kliknij, aby powiększyć">
+              </div>
+
+              <div *ngIf="note.videoUrl">
+                <video [src]="note.videoUrl" controls style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></video>
+              </div>
+
+              <div *ngIf="note.audioUrl">
+                <audio [src]="note.audioUrl" controls style="width: 100%;"></audio>
+              </div>
+
             </div>
+
           </div>
         </details>
       } @empty {
@@ -76,3 +87,10 @@
     </aside>
   </div>
 </div>
+
+@if (powiekszoneZdjecie) {
+  <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; cursor: zoom-out;" (click)="zamknijZdjecie()">
+    <img [src]="powiekszoneZdjecie" style="max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+    <div style="position: absolute; top: 20px; right: 40px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</div>
+  </div>
+}
