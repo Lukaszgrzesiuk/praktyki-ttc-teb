@@ -28,6 +28,23 @@
             <div class="input-row">
               <textarea [(ngModel)]="newContent" rows="8" placeholder="Content..." class="styled-input"></textarea>
             </div>
+            
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+              <input type="file" #photoInput accept="image/*" style="display: none;" (change)="onFileSelected($event, 'photo')">
+              <input type="file" #videoInput accept="video/*" style="display: none;" (change)="onFileSelected($event, 'video')">
+              <input type="file" #audioInput accept="audio/*" style="display: none;" (change)="onFileSelected($event, 'audio')">
+
+              <button type="button" (click)="photoInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">📷 Photo</button>
+              <button type="button" (click)="videoInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">🎥 Video</button>
+              <button type="button" (click)="audioInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">🎤 Audio</button>
+            </div>
+            
+            <div style="font-size: 12px; color: gray; margin-bottom: 15px;">
+              <div *ngIf="selectedPhoto">✔️ {{ selectedPhoto.name }}</div>
+              <div *ngIf="selectedVideo">✔️ {{ selectedVideo.name }}</div>
+              <div *ngIf="selectedAudio">✔️ {{ selectedAudio.name }}</div>
+            </div>
+
             <div class="save-footer">
                <button class="cancel-btn" (click)="toggleForm()">Cancel</button>
                <button class="standard-blue-btn" (click)="saveNewNote()">Save</button>
@@ -42,9 +59,15 @@
       
       @for (note of notesHistory; track note.id) {
         <details class="collapsible-note">
-          <summary>{{ note.title }} <small>{{ note.creationDate | date:'shortDate' }}</small></summary>
+          <summary>{{ note.title || note.tytul }} <small>{{ (note.creationDate || note.dataUtworzenia) | date:'shortDate' }}</small></summary>
           <div class="note-content">
-            <p>{{ note.content }}</p>
+            <p>{{ note.content || note.tresc }}</p>
+            
+            <div style="margin-top: 10px; display: flex; gap: 10px; font-size: 11px; font-weight: bold; color: #555;">
+              <span *ngIf="note.photo" style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px;">📎 Zdjęcie</span>
+              <span *ngIf="note.video" style="background: #e8f5e9; padding: 4px 8px; border-radius: 4px;">📎 Wideo</span>
+              <span *ngIf="note.audio" style="background: #fff3e0; padding: 4px 8px; border-radius: 4px;">📎 Audio</span>
+            </div>
           </div>
         </details>
       } @empty {
