@@ -1,0 +1,10 @@
+<div>
+  <h2>Dodaj notatkę</h2>
+  <textarea [(ngModel)]="tresc" rows="4" cols="40"></textarea><br>
+  <button (click)="generujAI()">AI Generuje</button><br><br>
+  <select [(ngModel)]="uprawnienia">
+    <option>Prywatne</option>
+    <option>Publiczne</option>
+  </select><br><br>
+  <button (click)="zapisz()">Zapisz notatkę</button>
+</div>

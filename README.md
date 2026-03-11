@@ -1,2 +1,8 @@
 # praktyki-ttc-teb
-Koziarski Damian - new
+Koziarski Damian
+Mołczan Krystian
+Michalak Szymon
+Mateusz Ryba
+Adrian Zając
+Łukasz Grzesiuk
+Michał Węglarz

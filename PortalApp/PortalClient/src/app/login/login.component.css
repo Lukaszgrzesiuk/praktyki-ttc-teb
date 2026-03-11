@@ -1,5 +1,5 @@
-/* Cała strona wyśrodkowana */
-.strona-pojemnik {
+/* Entire page centered */
+.page-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -7,9 +7,8 @@
   font-family: Arial, sans-serif;
 }
 
-
-/* Ramka formularza o stałej szerokości */
-.formularz-ramka {
+/* Fixed width form frame */
+.form-container {
   border: 1px solid #ccc;
   padding: 30px;
   border-radius: 8px;
@@ -18,8 +17,7 @@
   background-color: #fafafa;
 }
 
-
-/* Nowy styl dla logo Notatker.ai (gradient z Twojego screena) */
+/* Styling for the NoteTaker.ai logo */
 h1 {
   text-align: center;
   margin-top: 0;
@@ -34,38 +32,33 @@ h1 {
   text-transform: uppercase;
 }
 
-
 h2 {
   text-align: center;
   margin-top: 0;
 }
 
-
-/* Układ pojedynczego pola */
-.pole-grupowe {
+/* Single field layout */
+.form-group {
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
 }
 
-
-.pole-grupowe label {
+.form-group label {
   margin-bottom: 5px;
   font-size: 14px;
   font-weight: bold;
 }
 
-
-.pole-grupowe input {
+.form-group input {
   padding: 8px;
   border: 1px solid #aaa;
   border-radius: 4px;
   font-size: 14px;
 }
 
-
-/* Wygląd głównego przycisku (Log in / Sign up) */
-.glowny-przycisk {
+/* Main button appearance (Log in / Sign up) */
+.main-btn {
   width: 100%;
   padding: 10px;
   background-color: #333;
@@ -77,21 +70,18 @@ h2 {
   margin-top: 10px;
 }
 
-
-.glowny-przycisk:hover {
+.main-btn:hover {
   background-color: #555;
 }
 
-
-/* Sekcja z tekstem i przyciskiem do zmiany ekranu */
-.dolny-tekst {
+/* Text and button section for switching screens */
+.bottom-text {
   margin-top: 20px;
   text-align: center;
- font-size: 14px;
+  font-size: 14px;
 }
 
-
-.przycisk-link {
+.link-btn {
   background: none;
   border: none;
   color: #0066cc;
@@ -100,4 +90,3 @@ h2 {
   padding: 0;
   font-size: 14px;
 }
-

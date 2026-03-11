@@ -1,23 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-
 @Component({
-  selector: 'app-root',
+  selector: 'app-register',
   standalone: true,
   imports: [ReactiveFormsModule],
-  templateUrl: './login.app.html',
-  styleUrl: './login.app.css'
+  templateUrl: './register.component.html',
+  
+  styleUrls: ['./login.component.css'] 
 })
-export class AppComponent {
-  pokazRejestracje = false;
-
-
-  loginForm = new FormGroup({
-    login: new FormControl(''),
-    password: new FormControl('')
-  });
-
+export class RegisterComponent {
+  
+  @Output() switchToLogin = new EventEmitter<void>();
 
   registerForm = new FormGroup({
     firstName: new FormControl(''),
@@ -28,8 +22,7 @@ export class AppComponent {
     retypePassword: new FormControl('')
   });
 
-
-  przelaczWidok() {
-    this.pokazRejestracje = !this.pokazRejestracje;
+  onToggleView() {
+    this.switchToLogin.emit(); 
   }
 }

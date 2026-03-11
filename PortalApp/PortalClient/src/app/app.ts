@@ -1,12 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-
-@Component({
-  selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
-})
-export class App {
-  protected readonly title = signal('PortalClient');
-}
+import { LoginComponent } from './login/login.component';
+import { RegisterComponent } from './login/register.component';
+import { DashboardComponent } from './dashboard/dashboard.component';

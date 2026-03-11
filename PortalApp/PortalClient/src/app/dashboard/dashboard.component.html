@@ -2,7 +2,7 @@
   <header class="top-bar">
     <div class="search-container">
       <span class="search-icon">🔍</span>
-      <input type="text" placeholder="Szukaj..." class="search-input">
+      <input type="text" placeholder="Search..." class="search-input">
     </div>
   </header>
 
@@ -11,26 +11,43 @@
     <aside class="left-sidebar">
       <div class="panel-header">Menu</div>
       <p style="padding: 20px; color: gray;">
-        Tu będzie Twój Chat AI (dodamy go później)
+        Here will be your AI chat (we'll add it later)
       </p>
     </aside>
 
     <main class="center-content">
       <div class="center-wrapper">
-        @if (!pokazFormularz) {
-          <button class="huge-add-btn" (click)="toggleFormularz()">+ Dodaj notatkę</button>
+        @if (!showForm) {
+          <button class="huge-add-btn" (click)="toggleForm()">+ Add Note</button>
         } @else {
           <div class="note-form-area">
-            <h2>Nowa notatka</h2>
+            <h2>New Note</h2>
             <div class="input-row">
-              <input [(ngModel)]="nowyTytul" placeholder="Tytuł..." class="styled-input">
+              <input [(ngModel)]="newTitle" placeholder="Title..." class="styled-input">
             </div>
             <div class="input-row">
-              <textarea [(ngModel)]="nowaTresc" rows="8" placeholder="Treść..." class="styled-input"></textarea>
+              <textarea [(ngModel)]="newContent" rows="8" placeholder="Content..." class="styled-input"></textarea>
             </div>
+            
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+              <input type="file" #photoInput accept="image/*" style="display: none;" (change)="onFileSelected($event, 'photo')">
+              <input type="file" #videoInput accept="video/*" style="display: none;" (change)="onFileSelected($event, 'video')">
+              <input type="file" #audioInput accept="audio/*" style="display: none;" (change)="onFileSelected($event, 'audio')">
+
+              <button type="button" (click)="photoInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">📷 Photo</button>
+              <button type="button" (click)="videoInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">🎥 Video</button>
+              <button type="button" (click)="audioInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">🎤 Audio</button>
+            </div>
+            
+            <div style="font-size: 12px; color: gray; margin-bottom: 15px;">
+              <div *ngIf="selectedPhoto">✔️ {{ selectedPhoto.name }}</div>
+              <div *ngIf="selectedVideo">✔️ {{ selectedVideo.name }}</div>
+              <div *ngIf="selectedAudio">✔️ {{ selectedAudio.name }}</div>
+            </div>
+
             <div class="save-footer">
-               <button class="cancel-btn" (click)="toggleFormularz()">Anuluj</button>
-               <button class="standard-blue-btn" (click)="zapiszNowa()">Zapisz</button>
+               <button class="cancel-btn" (click)="toggleForm()">Cancel</button>
+               <button class="standard-blue-btn" (click)="saveNewNote()">Save</button>
             </div>
           </div>
         }
@@ -38,18 +55,42 @@
     </main>
 
     <aside class="right-sidebar">
-      <div class="panel-header">Twoje Notatki</div>
+      <div class="panel-header">Your Notes</div>
       
-      @for (note of historiaNotatek; track note.id) {
+      @for (note of notesHistory; track note.id) {
         <details class="collapsible-note">
-          <summary>{{ note.tytul }} <small>{{ note.dataUtworzenia | date:'shortDate' }}</small></summary>
+          <summary>{{ note.title || note.tytul }} <small>{{ (note.creationDate || note.dataUtworzenia) | date:'shortDate' }}</small></summary>
           <div class="note-content">
-            <p>{{ note.tresc }}</p>
+            <p>{{ note.content || note.tresc }}</p>
+            
+            <div *ngIf="note.photoUrl || note.videoUrl || note.audioUrl" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+              
+              <div *ngIf="note.photoUrl">
+                <img [src]="note.photoUrl" (click)="otworzZdjecie(note.photoUrl)" alt="Zdjecie notatki" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Kliknij, aby powiększyć">
+              </div>
+
+              <div *ngIf="note.videoUrl">
+                <video [src]="note.videoUrl" controls style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></video>
+              </div>
+
+              <div *ngIf="note.audioUrl">
+                <audio [src]="note.audioUrl" controls style="width: 100%;"></audio>
+              </div>
+
+            </div>
+
           </div>
         </details>
       } @empty {
-        <p style="padding: 20px; color: #888;">Brak notatek w bazie.</p>
+        <p style="padding: 20px; color: #888;">No notes in the database.</p>
       }
     </aside>
   </div>
 </div>
+
+@if (powiekszoneZdjecie) {
+  <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; cursor: zoom-out;" (click)="zamknijZdjecie()">
+    <img [src]="powiekszoneZdjecie" style="max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+    <div style="position: absolute; top: 20px; right: 40px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</div>
+  </div>
+}
