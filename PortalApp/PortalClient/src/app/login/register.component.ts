@@ -10,7 +10,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
   styleUrls: ['./login.component.css'] 
 })
 export class RegisterComponent {
-  
   @Output() switchToLogin = new EventEmitter<void>();
 
   registerForm = new FormGroup({
@@ -22,7 +21,18 @@ export class RegisterComponent {
     retypePassword: new FormControl('')
   });
 
+// NOWA FUNKCJA - reaguje na kliknięcie przycisku "Sign up" w formularzu
+  onRegisterSubmit() {
+    if (this.registerForm.valid) {
+      // Tu w przyszłości pójdzie zapytanie do bazy danych
+      console.log('Dane z rejestracji:', this.registerForm.value);
+      
+      // Błyskawiczny powrót do ekranu logowania bez żadnych okienek
+      this.switchToLogin.emit(); 
+    }
+  }
+
   onToggleView() {
-    this.switchToLogin.emit(); 
+    this.switchToLogin.emit();
   }
 }
