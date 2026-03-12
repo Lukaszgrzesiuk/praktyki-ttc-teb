@@ -8,11 +8,8 @@ export interface Note {
   id?: number;
   title?: string;
   content?: string;
-  tytul?: string;
-  tresc?: string;
-  uprawnienia?: string;
-  autor?: string;
-  dataUtworzenia?: string | Date;
+  permissions?: string; // <-- Zmieniono z 'permission' na 'permissions' wg tabeli Szymona
+  author?: string;
   creationDate?: string | Date;
   photo?: File | null;
   video?: File | null;
@@ -30,17 +27,18 @@ export interface Note {
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  notesHistory: any[] = [];
+  notesHistory: Note[] = [];
   showForm: boolean = false;
   newTitle: string = '';
   newContent: string = '';
+  
+  editingNoteId: number | null = null; 
 
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
 
-  // Nowa zmienna: trzyma link do zdjęcia, które użytkownik chce powiększyć
-  powiekszoneZdjecie: SafeUrl | null = null;
+  enlargedPhoto: SafeUrl | null = null;
 
   private noteService = inject(NoteService);
   private sanitizer = inject(DomSanitizer);
@@ -52,12 +50,15 @@ export class DashboardComponent implements OnInit {
   fetchNotes() {
     this.noteService.getNotes().subscribe({
       next: (data: any) => this.notesHistory = data,
-      error: (err: any) => console.error('Błąd pobierania:', err)
+      error: (err: any) => console.error('Fetch error:', err)
     });
   }
 
   toggleForm() {
     this.showForm = !this.showForm;
+    if (!this.showForm) {
+      this.resetForm();
+    }
   }
 
   onFileSelected(event: any, type: 'photo' | 'video' | 'audio') {
@@ -69,16 +70,25 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  // Funkcje do otwierania i zamykania zdjęcia na pełnym ekranie
-  otworzZdjecie(url: any) {
-    this.powiekszoneZdjecie = url;
+  openPhoto(url: any) {
+    this.enlargedPhoto = url;
   }
 
-  zamknijZdjecie() {
-    this.powiekszoneZdjecie = null;
+  closePhoto() {
+    this.enlargedPhoto = null;
   }
 
-  saveNewNote() {
+  editNote(note: Note) {
+    this.showForm = true;
+    this.editingNoteId = note.id || null;
+    this.newTitle = note.title || '';
+    this.newContent = note.content || '';
+    this.selectedPhoto = note.photo || null;
+    this.selectedVideo = note.video || null;
+    this.selectedAudio = note.audio || null;
+  }
+
+  saveNote() {
     if (!this.newTitle || !this.newContent) return;
     
     let pUrl = null;
@@ -89,31 +99,43 @@ export class DashboardComponent implements OnInit {
     if (this.selectedVideo) vUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedVideo));
     if (this.selectedAudio) aUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedAudio));
 
-    const nowa: Note = {
-      id: Math.floor(Math.random() * 1000), 
-      title: this.newTitle,
-      content: this.newContent,
-      tytul: this.newTitle,
-      tresc: this.newContent,
-      uprawnienia: 'Public',
-      autor: 'User',
-      creationDate: new Date().toISOString(),
-      dataUtworzenia: new Date().toISOString(),
-      photo: this.selectedPhoto,
-      video: this.selectedVideo,
-      audio: this.selectedAudio,
-      photoUrl: pUrl,
-      videoUrl: vUrl,
-      audioUrl: aUrl
-    };
-
-    this.notesHistory.unshift(nowa);
+    if (this.editingNoteId) {
+      const noteIndex = this.notesHistory.findIndex(n => n.id === this.editingNoteId);
+      if (noteIndex !== -1) {
+        this.notesHistory[noteIndex].title = this.newTitle;
+        this.notesHistory[noteIndex].content = this.newContent;
+        if (this.selectedPhoto) this.notesHistory[noteIndex].photoUrl = pUrl;
+        if (this.selectedVideo) this.notesHistory[noteIndex].videoUrl = vUrl;
+        if (this.selectedAudio) this.notesHistory[noteIndex].audioUrl = aUrl;
+      }
+    } else {
+      const newNote: Note = {
+        id: Math.floor(Math.random() * 1000), 
+        title: this.newTitle,
+        content: this.newContent,
+        permissions: 'Public', // <-- Zmieniono na 'permissions' wg tabeli Szymona
+        author: 'User',
+        creationDate: new Date().toISOString(),
+        photo: this.selectedPhoto,
+        video: this.selectedVideo,
+        audio: this.selectedAudio,
+        photoUrl: pUrl,
+        videoUrl: vUrl,
+        audioUrl: aUrl
+      };
+      this.notesHistory.unshift(newNote);
+    }
     
+    this.resetForm();
+    this.showForm = false;
+  }
+
+  resetForm() {
     this.newTitle = '';
     this.newContent = '';
     this.selectedPhoto = null;
     this.selectedVideo = null;
     this.selectedAudio = null;
-    this.showForm = false;
+    this.editingNoteId = null;
   }
 }
