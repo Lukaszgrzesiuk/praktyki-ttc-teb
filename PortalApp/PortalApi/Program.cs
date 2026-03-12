@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PortalApi.Data;
 using PortalApi.Services; 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 
