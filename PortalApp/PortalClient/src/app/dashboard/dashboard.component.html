@@ -25,6 +25,52 @@
             <div class="input-row">
               <input [(ngModel)]="newTitle" placeholder="Title..." class="styled-input">
             </div>
+
+            <div class="rating-box">
+              <h3>Rate your note</h3>
+
+              <div class="slider-group">
+                <div class="label-row">
+                  <label>How helpful is it???</label>
+                  <span class="current-emoji">{{ getEmoji(helpfulness) }} ({{ helpfulness }}/10)</span>
+                </div>
+                
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="10" 
+                  step="1" 
+                  [(ngModel)]="helpfulness" 
+                  class="emoji-slider"
+                >
+                
+                <div class="slider-ends">
+                  <span>😡</span>
+                  <span>🥰</span>
+                </div>
+              </div>
+
+              <div class="slider-group">
+                <div class="label-row">
+                  <label>How easy was it to create?</label>
+                  <span class="current-emoji">{{ getEmoji(easeOfCreation) }} ({{ easeOfCreation }}/10)</span>
+                </div>
+                
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="10" 
+                  step="1" 
+                  [(ngModel)]="easeOfCreation" 
+                  class="emoji-slider"
+                >
+                
+                <div class="slider-ends">
+                  <span>😡</span>
+                  <span>🥰</span>
+                </div>
+              </div>
+            </div>
             <div class="input-row">
               <textarea [(ngModel)]="newContent" rows="8" placeholder="Content..." class="styled-input"></textarea>
             </div>
@@ -61,7 +107,13 @@
         @for (note of notesHistory; track note.id) {
           
           <details class="collapsible-note" style="flex-shrink: 0; margin: 0;">
-            <summary>{{ note.title }} <small>{{ note.creationDate | date:'shortDate' }}</small></summary>
+            <summary>
+              {{ note.title }} 
+              <small>
+                {{ note.creationDate | date:'shortDate' }} 
+                | {{ getEmoji(note.helpfulness) }} ({{ note.helpfulness }}/10)
+              </small>
+            </summary>
             <div class="note-content">
               <p>{{ note.content }}</p>
               
