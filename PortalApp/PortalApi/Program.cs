@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using PortalApi.Data;
+using PortalApi.Services; 
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // 1. --- PORT CONFIGURATION ---
 // This forces the app to stay on Port 5000 and ignore other settings

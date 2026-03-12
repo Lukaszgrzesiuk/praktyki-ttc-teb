@@ -1,25 +1,28 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-[Table("user_registration")]
-public class User
+namespace PortalApi.Models
 {
-    [Key]
-    [Column("user_id")]
-    public int Id { get; set; }
+    [Table("user_registration")]
+    public class User
+    {
+        [Key]
+        [Column("user_id")]
+        public int Id { get; set; }
 
-    [Column("login")]
-    public string Login { get; set; } = string.Empty;
+        [Column("first_name")]
+        public string FirstName { get; set; } = string.Empty;
 
-    [Column("password_val")]
-    public string Password { get; set; } = string.Empty;
+        [Column("last_name")]
+        public string LastName { get; set; } = string.Empty;
 
-    // Reszta pól jest opcjonalna do logowania, więc możemy je pominąć dla uproszczenia
-}
+        [Column("login")]
+        public string Login { get; set; } = string.Empty;
 
-// Klasa pomocnicza do odbierania danych z Angulara
-public class LoginRequest
-{
-    public string Login { get; set; }
-    public string Password { get; set; }
+        [Column("email")]
+        public string Email { get; set; } = string.Empty;
+
+        [Column("password_val")]
+        public string Password { get; set; } = string.Empty;
+    }
 }
