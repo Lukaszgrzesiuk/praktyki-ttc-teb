@@ -21,13 +21,10 @@ export class RegisterComponent {
     retypePassword: new FormControl('')
   });
 
-// NOWA FUNKCJA - reaguje na kliknięcie przycisku "Sign up" w formularzu
   onRegisterSubmit() {
     if (this.registerForm.valid) {
-      // Tu w przyszłości pójdzie zapytanie do bazy danych
       console.log('Dane z rejestracji:', this.registerForm.value);
       
-      // Błyskawiczny powrót do ekranu logowania bez żadnych okienek
       this.switchToLogin.emit(); 
     }
   }
