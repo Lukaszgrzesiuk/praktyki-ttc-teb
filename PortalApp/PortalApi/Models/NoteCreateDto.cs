@@ -1,17 +1,17 @@
+using Microsoft.AspNetCore.Http;
+
 namespace PortalApi.Models
 {
-    public class Note
+    public class NoteCreateDto
     {
-        public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public string Permissions { get; set; } = "Public";
         public string Author { get; set; } = "User";
-        public DateTime CreationDate { get; set; } = DateTime.Now;
 
-        
-        public string? PhotoUrl { get; set; }
-        public string? VideoUrl { get; set; }
-        public string? AudioUrl { get; set; }
+        // Files submitted from the form
+        public IFormFile? Photo { get; set; }
+        public IFormFile? Video { get; set; }
+        public IFormFile? Audio { get; set; }
     }
 }
