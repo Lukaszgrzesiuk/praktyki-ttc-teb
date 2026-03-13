@@ -11,8 +11,8 @@ export interface Note {
   permissions?: string; 
   author?: string;
   creationDate?: string | Date;
-  helpfulness: number;      // Added field for rating
-  easeOfCreation: number;   // Added field for rating
+  helpfulness: number;
+  easeOfCreation: number;
   photo?: File | null;
   video?: File | null;
   audio?: File | null;

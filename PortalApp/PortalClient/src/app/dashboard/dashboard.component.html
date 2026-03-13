@@ -22,6 +22,7 @@
         } @else {
           <div class="note-form-area">
             <h2>{{ editingNoteId ? 'Edit Note' : 'New Note' }}</h2>
+            
             <div class="input-row">
               <input [(ngModel)]="newTitle" placeholder="Title..." class="styled-input">
             </div>
@@ -32,7 +33,7 @@
               <div class="slider-group">
                 <div class="label-row">
                   <label>How helpful is it???</label>
-                  <span class="current-emoji">{{ getEmoji(helpfulness) }} ({{ helpfulness }}/10)</span>
+                  <span class="current-emoji slider-cyan">{{ getEmoji(helpfulness) }} ({{ helpfulness }}/10)</span>
                 </div>
                 
                 <input 
@@ -41,7 +42,7 @@
                   max="10" 
                   step="1" 
                   [(ngModel)]="helpfulness" 
-                  class="emoji-slider"
+                  class="emoji-slider slider-cyan"
                 >
                 
                 <div class="slider-ends">
@@ -53,7 +54,7 @@
               <div class="slider-group">
                 <div class="label-row">
                   <label>How easy was it to create?</label>
-                  <span class="current-emoji">{{ getEmoji(easeOfCreation) }} ({{ easeOfCreation }}/10)</span>
+                  <span class="current-emoji slider-green">{{ getEmoji(easeOfCreation) }} ({{ easeOfCreation }}/10)</span>
                 </div>
                 
                 <input 
@@ -62,7 +63,7 @@
                   max="10" 
                   step="1" 
                   [(ngModel)]="easeOfCreation" 
-                  class="emoji-slider"
+                  class="emoji-slider slider-green"
                 >
                 
                 <div class="slider-ends">
@@ -71,21 +72,22 @@
                 </div>
               </div>
             </div>
+
             <div class="input-row">
-              <textarea [(ngModel)]="newContent" rows="8" placeholder="Content..." class="styled-input"></textarea>
+              <textarea [(ngModel)]="newContent" rows="5" placeholder="Content..." class="styled-input"></textarea>
             </div>
             
-            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+            <div style="margin-bottom: 10px; display: flex; gap: 10px;">
               <input type="file" #photoInput accept="image/*" style="display: none;" (change)="onFileSelected($event, 'photo')">
               <input type="file" #videoInput accept="video/*" style="display: none;" (change)="onFileSelected($event, 'video')">
               <input type="file" #audioInput accept="audio/*" style="display: none;" (change)="onFileSelected($event, 'audio')">
 
-              <button type="button" (click)="photoInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">📷 Photo</button>
-              <button type="button" (click)="videoInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">🎥 Video</button>
-              <button type="button" (click)="audioInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">🎤 Audio</button>
+              <button type="button" (click)="photoInput.click()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer; font-size: 0.9rem;">📷 Photo</button>
+              <button type="button" (click)="videoInput.click()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer; font-size: 0.9rem;">🎥 Video</button>
+              <button type="button" (click)="audioInput.click()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer; font-size: 0.9rem;">🎤 Audio</button>
             </div>
             
-            <div style="font-size: 12px; color: gray; margin-bottom: 15px;">
+            <div style="font-size: 11px; color: gray; margin-bottom: 10px;">
               <div *ngIf="selectedPhoto">✔️ {{ selectedPhoto.name }}</div>
               <div *ngIf="selectedVideo">✔️ {{ selectedVideo.name }}</div>
               <div *ngIf="selectedAudio">✔️ {{ selectedAudio.name }}</div>
@@ -110,8 +112,9 @@
             <summary>
               {{ note.title }} 
               <small>
-                {{ note.creationDate | date:'shortDate' }} 
-                | {{ getEmoji(note.helpfulness) }} ({{ note.helpfulness }}/10)
+                {{ note.creationDate | date:'shortDate' }} <br/>
+                Helpful: {{ getEmoji(note.helpfulness) }} ({{ note.helpfulness }}/10) | 
+                Easy: {{ getEmoji(note.easeOfCreation) }} ({{ note.easeOfCreation }}/10)
               </small>
             </summary>
             <div class="note-content">
