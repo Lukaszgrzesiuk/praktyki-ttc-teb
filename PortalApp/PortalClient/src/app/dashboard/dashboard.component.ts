@@ -8,9 +8,11 @@ export interface Note {
   id?: number;
   title?: string;
   content?: string;
-  permissions?: string; // <-- Zmieniono z 'permission' na 'permissions' wg tabeli Szymona
+  permissions?: string; 
   author?: string;
   creationDate?: string | Date;
+  helpfulness: number;
+  easeOfCreation: number;
   photo?: File | null;
   video?: File | null;
   audio?: File | null;
@@ -32,6 +34,11 @@ export class DashboardComponent implements OnInit {
   newTitle: string = '';
   newContent: string = '';
   
+  // Rating logic integration
+  helpfulness = 5;
+  easeOfCreation = 5;
+  emojis = ['😡', '😠', '😞', '😕', '😐', '🙂', '😊', '😄', '🤩', '🥰'];
+
   editingNoteId: number | null = null; 
 
   selectedPhoto: File | null = null;
@@ -45,6 +52,10 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.fetchNotes();
+  }
+
+  getEmoji(rating: number): string {
+    return this.emojis[rating - 1];
   }
 
   fetchNotes() {
@@ -83,6 +94,8 @@ export class DashboardComponent implements OnInit {
     this.editingNoteId = note.id || null;
     this.newTitle = note.title || '';
     this.newContent = note.content || '';
+    this.helpfulness = note.helpfulness || 5;
+    this.easeOfCreation = note.easeOfCreation || 5;
     this.selectedPhoto = note.photo || null;
     this.selectedVideo = note.video || null;
     this.selectedAudio = note.audio || null;
@@ -104,6 +117,8 @@ export class DashboardComponent implements OnInit {
       if (noteIndex !== -1) {
         this.notesHistory[noteIndex].title = this.newTitle;
         this.notesHistory[noteIndex].content = this.newContent;
+        this.notesHistory[noteIndex].helpfulness = this.helpfulness;
+        this.notesHistory[noteIndex].easeOfCreation = this.easeOfCreation;
         if (this.selectedPhoto) this.notesHistory[noteIndex].photoUrl = pUrl;
         if (this.selectedVideo) this.notesHistory[noteIndex].videoUrl = vUrl;
         if (this.selectedAudio) this.notesHistory[noteIndex].audioUrl = aUrl;
@@ -113,9 +128,11 @@ export class DashboardComponent implements OnInit {
         id: Math.floor(Math.random() * 1000), 
         title: this.newTitle,
         content: this.newContent,
-        permissions: 'Public', // <-- Zmieniono na 'permissions' wg tabeli Szymona
+        permissions: 'Public',
         author: 'User',
         creationDate: new Date().toISOString(),
+        helpfulness: this.helpfulness,
+        easeOfCreation: this.easeOfCreation,
         photo: this.selectedPhoto,
         video: this.selectedVideo,
         audio: this.selectedAudio,
@@ -137,5 +154,7 @@ export class DashboardComponent implements OnInit {
     this.selectedVideo = null;
     this.selectedAudio = null;
     this.editingNoteId = null;
+    this.helpfulness = 5;
+    this.easeOfCreation = 5;
   }
 }

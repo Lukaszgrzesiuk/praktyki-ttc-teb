@@ -10,7 +10,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
   styleUrls: ['./login.component.css'] 
 })
 export class RegisterComponent {
-  
   @Output() switchToLogin = new EventEmitter<void>();
 
   registerForm = new FormGroup({
@@ -22,7 +21,15 @@ export class RegisterComponent {
     retypePassword: new FormControl('')
   });
 
+  onRegisterSubmit() {
+    if (this.registerForm.valid) {
+      console.log('Dane z rejestracji:', this.registerForm.value);
+      
+      this.switchToLogin.emit(); 
+    }
+  }
+
   onToggleView() {
-    this.switchToLogin.emit(); 
+    this.switchToLogin.emit();
   }
 }
