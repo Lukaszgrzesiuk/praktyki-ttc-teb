@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RegisterComponent } from './register.component'; 
+import { AuthService } from '../services/auth.service'; 
 
 @Component({
   selector: 'app-login',
@@ -12,6 +13,7 @@ import { RegisterComponent } from './register.component';
 })
 export class LoginComponent {
   private router = inject(Router);
+  private authService = inject(AuthService); 
 
   showRegistration = false;
 
@@ -25,6 +27,17 @@ export class LoginComponent {
   }
 
   onLogin() {
-    this.router.navigate(['/dashboard']);
+    if (this.loginForm.valid) {
+      this.authService.login(this.loginForm.value).subscribe({
+        next: (response) => {
+          console.log('Login successful! Backend says:', response);
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err) => {
+          console.error('Login failed! Invalid credentials or server error:', err);
+          alert('Login failed. Please check your credentials.');
+        }
+      });
+    }
   }
 }
