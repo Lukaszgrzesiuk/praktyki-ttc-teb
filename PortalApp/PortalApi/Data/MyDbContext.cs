@@ -7,7 +7,6 @@ namespace PortalApi.Data
     {
         public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
 
-        // This links C# to your "Notes" table in SQL
-        public DbSet<Note> Notes { get; set; }
+        public DbSet<User> Users { get; set; } 
     }
 }
