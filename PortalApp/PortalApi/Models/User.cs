@@ -16,7 +16,7 @@ namespace PortalApi.Models
         [Column("last_name")]
         public string LastName { get; set; } = string.Empty;
 
-        [Column("login")]
+        [Column("login_name")]
         public string Login { get; set; } = string.Empty;
 
         [Column("email")]

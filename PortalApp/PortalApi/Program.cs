@@ -2,29 +2,28 @@ using Microsoft.EntityFrameworkCore;
 using PortalApi.Data;
 using PortalApi.Services; 
 
-
 var builder = WebApplication.CreateBuilder(args);
 
-
 // 1. --- PORT CONFIGURATION ---
-// This forces the app to stay on Port 5000 and ignore other settings
 builder.WebHost.UseUrls("http://localhost:5000");
 
 // 2. --- SERVICES ---
-// These lines MUST be here for the [ApiController] buttons to show up in Swagger
 builder.Services.AddControllers(); 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 
-// Your Connection String
-var connectionString = "Server=192.168.0.171,1433;Database=Login_panel;user Id=user;TrustServerCertificate=True;";
-;
+// POBIERAMY CONNECTION STRING Z PLIKU appsettings.json!
+// Dzięki temu zarówno Twój DbContext, jak i Twój NotesController będą korzystać z tej samej bazy.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                       ?? throw new InvalidOperationException("Nie znaleziono Connection Stringa w appsettings.json!");
 
-// Database Setup
+// Database Setup (Entity Framework)
 builder.Services.AddDbContext<MyDbContext>(options => 
     options.UseSqlServer(connectionString));
 
-// CORS Setup (Allows your Angular app on port 4200 to talk to this API)
+// CORS Setup
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
@@ -38,24 +37,19 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // 3. --- MIDDLEWARE PIPELINE ---
-// The order here is critical for Swagger to work
-
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Portal API V1");
-    // This makes Swagger available at http://localhost:5000/swagger
     c.RoutePrefix = "swagger"; 
 });
 
-// Important: Use CORS before Authorization and Mapping
+// Ważne: CORS musi być przed Autoryzacją i Mapowaniem
 app.UseCors("AllowAngular");
 app.UseAuthorization();
 
-// This line specifically scans your 'Controllers' folder and creates the routes
 app.MapControllers();
 
-// A simple root test to verify the server is alive
 app.MapGet("/", () => "HELLO! The server is running. Go to /swagger to see the API.");
 
 app.Run();
