@@ -1,16 +1,18 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './register.component.html',
-  
   styleUrls: ['./login.component.css'] 
 })
 export class RegisterComponent {
   @Output() switchToLogin = new EventEmitter<void>();
+
+  private authService = inject(AuthService);
 
   registerForm = new FormGroup({
     firstName: new FormControl(''),
@@ -23,9 +25,16 @@ export class RegisterComponent {
 
   onRegisterSubmit() {
     if (this.registerForm.valid) {
-      console.log('Dane z rejestracji:', this.registerForm.value);
-      
-      this.switchToLogin.emit(); 
+      this.authService.register(this.registerForm.value).subscribe({
+        next: (response) => {
+          console.log('Registration successful! Backend says:', response);
+          this.switchToLogin.emit(); 
+        },
+        error: (err) => {
+          console.error('Registration failed! Server error:', err);
+          alert('Registration failed. Please try again.');
+        }
+      });
     }
   }
 

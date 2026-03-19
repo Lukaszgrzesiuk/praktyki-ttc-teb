@@ -2,20 +2,24 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+// Zaktualizowany interfejs pod nowy model bazy danych
 export interface Note {
   id?: number;
   title: string;
   content: string;
-  helpfulness: number;
-  easeOfUse: number;
-  createdAt?: string;
+  permissions: string;
+  author: string;
+  creationDate?: string; // Backend zwraca to jako creationDate (camelCase)
+  photoUrl?: string;
+  videoUrl?: string;
+  audioUrl?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class NoteService {
-  private apiUrl = 'http://localhost:5000/api/notes'; 
+  private apiUrl = 'http://localhost:5000/api/notes';
 
   constructor(private http: HttpClient) {}
 
@@ -23,8 +27,9 @@ export class NoteService {
     return this.http.get<Note[]>(this.apiUrl);
   }
 
-  addNote(note: Note): Observable<Note> {
-    return this.http.post<Note>(this.apiUrl, note);
+  // ZMIANA: Wysyłamy FormData (bo kontroler ma [FromForm])
+  addNote(formData: FormData): Observable<Note> {
+    return this.http.post<Note>(this.apiUrl, formData);
   }
 
   deleteNote(id: number): Observable<any> {
