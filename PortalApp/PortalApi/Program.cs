@@ -1,6 +1,6 @@
+using PortalApi.Services;
 using Microsoft.EntityFrameworkCore;
 using PortalApi.Data;
-using PortalApi.Services; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,3 +53,5 @@ app.MapControllers();
 app.MapGet("/", () => "HELLO! The server is running. Go to /swagger to see the API.");
 
 app.Run();
+
+builder.Services.AddScoped<IAdminService, AdminService>();
