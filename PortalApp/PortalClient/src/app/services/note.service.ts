@@ -8,7 +8,6 @@ export interface Note {
   content: string;
   helpfulness: number;
   easeOfUse: number;
-  photoUrl?: string;
   createdAt?: string;
 }
 
@@ -16,7 +15,7 @@ export interface Note {
   providedIn: 'root'
 })
 export class NoteService {
-  private apiUrl = 'http://localhost:5000/api/notes';
+  private apiUrl = 'http://localhost:5000/api/notes'; 
 
   constructor(private http: HttpClient) {}
 
@@ -24,7 +23,7 @@ export class NoteService {
     return this.http.get<Note[]>(this.apiUrl);
   }
 
-  saveNote(note: Note): Observable<Note> {
+  addNote(note: Note): Observable<Note> {
     return this.http.post<Note>(this.apiUrl, note);
   }
 
