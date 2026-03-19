@@ -22,10 +22,6 @@ export class DashboardComponent implements OnInit {
   showForm: boolean = false;
   enlargedPhoto: string | null = null;
 
-  selectedPhoto: File | null = null;
-  selectedVideo: File | null = null;
-  selectedAudio: File | null = null;
-
   constructor(private noteService: NoteService) {}
 
   ngOnInit() {
@@ -34,20 +30,14 @@ export class DashboardComponent implements OnInit {
 
   loadNotes() {
     this.noteService.getNotes().subscribe({
-      next: (data) => {
-        this.notesHistory = data;
-      },
-      error: (err) => {
-        console.log('Backend is offline, using local storage mode.');
-      }
+      next: (data) => { this.notesHistory = data; },
+      error: (err) => { console.log('Backend offline, local mode active.'); }
     });
   }
 
   toggleForm() {
     this.showForm = !this.showForm;
-    if (!this.showForm) {
-      this.resetForm();
-    }
+    if (!this.showForm) this.resetForm();
   }
 
   saveNote() {
@@ -57,17 +47,17 @@ export class DashboardComponent implements OnInit {
       content: this.newContent,
       helpfulness: this.helpfulness,
       easeOfCreation: this.easeOfCreation,
-      creationDate: new Date().toISOString(),
-      photoUrl: this.selectedPhoto ? URL.createObjectURL(this.selectedPhoto) : null
+      creationDate: new Date().toISOString()
     };
 
+    // Optimistic UI update
     this.notesHistory.unshift(noteData);
     this.resetForm();
     this.showForm = false;
 
     this.noteService.saveNote(noteData).subscribe({
-      next: (savedNote) => console.log('Successfully synced with backend'),
-      error: (err) => console.log('Backend offline - note saved only locally')
+      next: (savedNote) => console.log('Synced with backend'),
+      error: (err) => console.log('Saved locally only')
     });
   }
 
@@ -80,12 +70,16 @@ export class DashboardComponent implements OnInit {
     this.easeOfCreation = note.easeOfCreation;
   }
 
-  onFileSelected(event: any, type: string) {
-    const file = event.target.files[0];
-    if (file) {
-      if (type === 'photo') this.selectedPhoto = file;
-      if (type === 'video') this.selectedVideo = file;
-      if (type === 'audio') this.selectedAudio = file;
+  deleteNote(id: number) {
+    if (confirm('Are you sure you want to delete this note?')) {
+      // Usuwamy z widoku natychmiast
+      this.notesHistory = this.notesHistory.filter(note => note.id !== id);
+      
+      // Wysyłamy prośbę do backendu
+      this.noteService.deleteNote(id).subscribe({
+        next: () => console.log('Deleted from server'),
+        error: (err) => console.log('Deleted locally only (backend offline)')
+      });
     }
   }
 
@@ -97,13 +91,8 @@ export class DashboardComponent implements OnInit {
     return '🤩';
   }
 
-  openPhoto(url: string) {
-    this.enlargedPhoto = url;
-  }
-
-  closePhoto() {
-    this.enlargedPhoto = null;
-  }
+  openPhoto(url: string) { this.enlargedPhoto = url; }
+  closePhoto() { this.enlargedPhoto = null; }
 
   resetForm() {
     this.newTitle = '';
@@ -111,8 +100,5 @@ export class DashboardComponent implements OnInit {
     this.helpfulness = 0;
     this.easeOfCreation = 0;
     this.editingNoteId = null;
-    this.selectedPhoto = null;
-    this.selectedVideo = null;
-    this.selectedAudio = null;
   }
 }
