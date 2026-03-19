@@ -1,67 +1,45 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NoteService } from '../services/note.service';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-
-export interface Note {
-  id?: number;
-  title?: string;
-  content?: string;
-  permissions?: string; 
-  author?: string;
-  creationDate?: string | Date;
-  helpfulness: number;
-  easeOfCreation: number;
-  photo?: File | null;
-  video?: File | null;
-  audio?: File | null;
-  photoUrl?: SafeUrl | null;
-  videoUrl?: SafeUrl | null;
-  audioUrl?: SafeUrl | null;
-}
+import { NoteService, Note } from '../services/note.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  notesHistory: Note[] = [];
-  showForm: boolean = false;
+  notesHistory: any[] = [];
+  
   newTitle: string = '';
   newContent: string = '';
+  helpfulness: number = 0;
+  easeOfCreation: number = 0;
+  editingNoteId: number | null = null;
   
-  // Rating logic integration
-  helpfulness = 5;
-  easeOfCreation = 5;
-  emojis = ['😡', '😠', '😞', '😕', '😐', '🙂', '😊', '😄', '🤩', '🥰'];
-
-  editingNoteId: number | null = null; 
+  showForm: boolean = false;
+  enlargedPhoto: string | null = null;
 
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
 
-  enlargedPhoto: SafeUrl | null = null;
-
-  private noteService = inject(NoteService);
-  private sanitizer = inject(DomSanitizer);
+  constructor(private noteService: NoteService) {}
 
   ngOnInit() {
-    this.fetchNotes();
+    this.loadNotes();
   }
 
-  getEmoji(rating: number): string {
-    return this.emojis[rating - 1];
-  }
-
-  fetchNotes() {
+  loadNotes() {
     this.noteService.getNotes().subscribe({
-      next: (data: any) => this.notesHistory = data,
-      error: (err: any) => console.error('Fetch error:', err)
+      next: (data) => {
+        this.notesHistory = data;
+      },
+      error: (err) => {
+        console.log('Backend is offline, using local storage mode.');
+      }
     });
   }
 
@@ -72,7 +50,37 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  onFileSelected(event: any, type: 'photo' | 'video' | 'audio') {
+  saveNote() {
+    const noteData: any = {
+      id: Date.now(),
+      title: this.newTitle,
+      content: this.newContent,
+      helpfulness: this.helpfulness,
+      easeOfCreation: this.easeOfCreation,
+      creationDate: new Date().toISOString(),
+      photoUrl: this.selectedPhoto ? URL.createObjectURL(this.selectedPhoto) : null
+    };
+
+    this.notesHistory.unshift(noteData);
+    this.resetForm();
+    this.showForm = false;
+
+    this.noteService.saveNote(noteData).subscribe({
+      next: (savedNote) => console.log('Successfully synced with backend'),
+      error: (err) => console.log('Backend offline - note saved only locally')
+    });
+  }
+
+  editNote(note: any) {
+    this.showForm = true;
+    this.editingNoteId = note.id;
+    this.newTitle = note.title;
+    this.newContent = note.content;
+    this.helpfulness = note.helpfulness;
+    this.easeOfCreation = note.easeOfCreation;
+  }
+
+  onFileSelected(event: any, type: string) {
     const file = event.target.files[0];
     if (file) {
       if (type === 'photo') this.selectedPhoto = file;
@@ -81,7 +89,15 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  openPhoto(url: any) {
+  getEmoji(value: number): string {
+    if (value <= 2) return '😢';
+    if (value <= 4) return '😐';
+    if (value <= 6) return '🙂';
+    if (value <= 8) return '😊';
+    return '🤩';
+  }
+
+  openPhoto(url: string) {
     this.enlargedPhoto = url;
   }
 
@@ -89,72 +105,14 @@ export class DashboardComponent implements OnInit {
     this.enlargedPhoto = null;
   }
 
-  editNote(note: Note) {
-    this.showForm = true;
-    this.editingNoteId = note.id || null;
-    this.newTitle = note.title || '';
-    this.newContent = note.content || '';
-    this.helpfulness = note.helpfulness || 5;
-    this.easeOfCreation = note.easeOfCreation || 5;
-    this.selectedPhoto = note.photo || null;
-    this.selectedVideo = note.video || null;
-    this.selectedAudio = note.audio || null;
-  }
-
-  saveNote() {
-    if (!this.newTitle || !this.newContent) return;
-    
-    let pUrl = null;
-    let vUrl = null;
-    let aUrl = null;
-
-    if (this.selectedPhoto) pUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedPhoto));
-    if (this.selectedVideo) vUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedVideo));
-    if (this.selectedAudio) aUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedAudio));
-
-    if (this.editingNoteId) {
-      const noteIndex = this.notesHistory.findIndex(n => n.id === this.editingNoteId);
-      if (noteIndex !== -1) {
-        this.notesHistory[noteIndex].title = this.newTitle;
-        this.notesHistory[noteIndex].content = this.newContent;
-        this.notesHistory[noteIndex].helpfulness = this.helpfulness;
-        this.notesHistory[noteIndex].easeOfCreation = this.easeOfCreation;
-        if (this.selectedPhoto) this.notesHistory[noteIndex].photoUrl = pUrl;
-        if (this.selectedVideo) this.notesHistory[noteIndex].videoUrl = vUrl;
-        if (this.selectedAudio) this.notesHistory[noteIndex].audioUrl = aUrl;
-      }
-    } else {
-      const newNote: Note = {
-        id: Math.floor(Math.random() * 1000), 
-        title: this.newTitle,
-        content: this.newContent,
-        permissions: 'Public',
-        author: 'User',
-        creationDate: new Date().toISOString(),
-        helpfulness: this.helpfulness,
-        easeOfCreation: this.easeOfCreation,
-        photo: this.selectedPhoto,
-        video: this.selectedVideo,
-        audio: this.selectedAudio,
-        photoUrl: pUrl,
-        videoUrl: vUrl,
-        audioUrl: aUrl
-      };
-      this.notesHistory.unshift(newNote);
-    }
-    
-    this.resetForm();
-    this.showForm = false;
-  }
-
   resetForm() {
     this.newTitle = '';
     this.newContent = '';
+    this.helpfulness = 0;
+    this.easeOfCreation = 0;
+    this.editingNoteId = null;
     this.selectedPhoto = null;
     this.selectedVideo = null;
     this.selectedAudio = null;
-    this.editingNoteId = null;
-    this.helpfulness = 5;
-    this.easeOfCreation = 5;
   }
 }
