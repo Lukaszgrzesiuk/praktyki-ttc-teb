@@ -20,7 +20,6 @@ interface User {
   selector: 'app-admin-panel',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  // ZAKTUALIZOWANE ŚCIEŻKI:
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.css'
 })
@@ -29,9 +28,21 @@ export class AdminPanelComponent {
   selectedUser: User | null = null;
   userIdCounter = 1;
 
+  // DODANE: Pole do wyszukiwarki
+  searchQuery = '';
+
+  // DODANE: Pola dla nowego użytkownika (nazwa i hasło)
   newUserName = '';
+  newUserPassword = '';
+  
   newGroupName = '';
   newNoteTitle = '';
+
+  // DODANE: Dynamiczna lista, która filtruje użytkowników po wpisanym tekście
+  get filteredUsers() {
+    if (!this.searchQuery) return this.users;
+    return this.users.filter(u => u.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+  }
 
   // --- USER MANAGEMENT ---
   selectUser(user: User) {
@@ -40,8 +51,9 @@ export class AdminPanelComponent {
     this.newNoteTitle = '';
   }
 
+  // ZMIENIONE: Dodawanie wymaga teraz nazwy i hasła
   addUser() {
-    if (this.newUserName.trim()) {
+    if (this.newUserName.trim() && this.newUserPassword.trim()) {
       const newUser: User = {
         id: this.userIdCounter++,
         name: this.newUserName.trim(),
@@ -49,12 +61,18 @@ export class AdminPanelComponent {
         notes: [],
         logs: [{ action: 'Account created', timestamp: new Date(), isSuspicious: false }]
       };
+      
       this.users.push(newUser);
+      
+      // Czyszczenie pól po dodaniu
       this.newUserName = '';
+      this.newUserPassword = '';
       
       if (!this.selectedUser) {
         this.selectUser(newUser);
       }
+    } else {
+      alert('Please provide both username and password!');
     }
   }
 
