@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NoteService } from '../services/note.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { UserPanelComponent } from '../panel/user-panel.component';
 
 export interface Note {
   id?: number;
@@ -24,7 +25,7 @@ export interface Note {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule, DatePipe,  UserPanelComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })

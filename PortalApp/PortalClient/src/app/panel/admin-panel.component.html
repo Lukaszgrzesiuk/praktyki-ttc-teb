@@ -1,0 +1,98 @@
+
+<div class="admin-dashboard">
+  
+  <aside class="user-sidebar">
+    <div class="sidebar-header">
+      <h2>User List</h2>
+    </div>
+    
+    <div class="add-box">
+      <input type="text" [(ngModel)]="newUserName" placeholder="New user name...">
+      <button class="btn-primary" (click)="addUser()">Add User</button>
+    </div>
+
+    <ul class="user-list">
+      @for (user of users; track user.id) {
+        <li (click)="selectUser(user)" [class.active]="selectedUser?.id === user.id">
+          {{ user.name }}
+        </li>
+      } @empty {
+        <li class="empty-msg">No users found.</li>
+      }
+    </ul>
+  </aside>
+
+  <main class="user-details">
+    @if (selectedUser) {
+      
+      <header class="detail-header">
+        <h2>Managing: {{ selectedUser.name }}</h2>
+        <div class="header-actions">
+          <button class="btn-danger" (click)="deleteUser()">Delete User</button>
+          <button class="btn-warning" (click)="sendAlert()">Send Alert</button>
+        </div>
+      </header>
+
+      <div class="panels-grid">
+        
+        <section class="admin-card">
+          <h3>Groups</h3>
+          <div class="add-box">
+            <input type="text" [(ngModel)]="newGroupName" placeholder="Group name...">
+            <button class="btn-secondary" (click)="addGroup()">Add</button>
+          </div>
+          <ul>
+            @for (group of selectedUser.groups; track group) {
+              <li>
+                <span>{{ group }}</span>
+                <button class="btn-icon" (click)="removeGroup(group)">❌</button>
+              </li>
+            } @empty {
+              <li class="empty-msg">No groups assigned.</li>
+            }
+          </ul>
+        </section>
+
+        <section class="admin-card">
+          <h3>Notes</h3>
+          <div class="add-box">
+            <input type="text" [(ngModel)]="newNoteTitle" placeholder="Note title...">
+            <button class="btn-secondary" (click)="addNote()">Add</button>
+          </div>
+          <ul>
+            @for (note of selectedUser.notes; track note) {
+              <li>
+                <span>{{ note }}</span>
+                <button class="btn-icon" (click)="removeNote(note)">❌</button>
+              </li>
+            } @empty {
+              <li class="empty-msg">No notes created.</li>
+            }
+          </ul>
+        </section>
+
+        <section class="admin-card logs-card">
+          <div class="card-header-flex">
+            <h3>Activity Logs</h3>
+            <button class="btn-outline-danger" (click)="simulateMisuse()">Simulate Misuse</button>
+          </div>
+          <ul class="log-list">
+            @for (log of selectedUser.logs; track log.timestamp) {
+              <li [class.suspicious]="log.isSuspicious">
+                <span class="log-time">{{ log.timestamp | date:'shortTime' }}</span>
+                <span class="log-action">{{ log.action }}</span>
+              </li>
+            } @empty {
+              <li class="empty-msg">No activity recorded.</li>
+            }
+          </ul>
+        </section>
+
+      </div>
+    } @else {
+      <div class="no-selection">
+        <h3>Select or add a user to manage their data.</h3>
+      </div>
+    }
+  </main>
+</div>
