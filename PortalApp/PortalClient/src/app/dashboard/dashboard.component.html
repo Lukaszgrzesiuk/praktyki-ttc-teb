@@ -5,9 +5,9 @@
 
   <div class="content-layout">
     <div class="left-sidebar">
-      <div class="panel-header">STATISTICS</div>
-      <div style="padding: 20px; text-align: center; color: #718096;">
-        Total notes: {{notesHistory.length}}
+      <div class="panel-header">Menu</div>
+      <div class="placeholder-text">
+        Here will be your AI chat (we'll add it later)
       </div>
     </div>
 
@@ -66,7 +66,7 @@
 
             <div class="save-footer">
               <button class="cancel-btn" (click)="toggleForm()">Cancel</button>
-              <button class="standard-blue-btn" (click)="saveNote()">{{ editingNoteId ? 'Update' : 'Save' }} Note</button>
+              <button class="standard-blue-btn" (click)="saveNote()">Save Note</button>
             </div>
           </div>
         }
@@ -74,22 +74,25 @@
     </div>
 
     <div class="right-sidebar">
-      <div class="panel-header">HISTORY</div>
+      <div class="panel-header">Your Notes</div>
       <div *ngFor="let note of notesHistory" class="collapsible-note">
         <details>
           <summary>
-            {{note.title}}
-            <small>{{note.creationDate | date:'short'}}</small>
-          </summary>
-          <div class="note-content">
-            <p>{{note.content}}</p>
-            
-            <div *ngIf="note.photoUrl || note.videoUrl || note.audioUrl" style="margin-top: 10px; font-size: 0.85rem;">
-              <strong>Attachments:</strong>
-              <span *ngIf="note.photoUrl"> 📷 </span>
-              <span *ngIf="note.videoUrl"> 🎥 </span>
-              <span *ngIf="note.audioUrl"> 🎤 </span>
+            <div style="display: flex; flex-direction: column;">
+              <span class="note-title">{{note.title}}</span>
+              <div class="note-meta">
+                {{note.creationDate | date:'shortDate'}} | 
+                <span style="color: #37c3bb; font-weight: 600;">{{getEmoji(note.helpfulness)}} ({{note.helpfulness || 0}}/10)</span>
+              </div>
             </div>
+          </summary>
+          <div style="padding: 0 20px 20px 20px; color: #4a5568; font-size: 0.95rem;">
+            <p style="margin-top: 0;">{{note.content}}</p>
+            
+            <img *ngIf="note.photoUrl" 
+                 [src]="'http://localhost:5000' + note.photoUrl" 
+                 class="note-thumbnail" 
+                 (click)="openPhoto('http://localhost:5000' + note.photoUrl)">
 
             <div class="save-footer" style="margin-top: 15px;">
               <button class="standard-blue-btn" (click)="editNote(note)">Edit</button>
@@ -100,4 +103,9 @@
       </div>
     </div>
   </div>
+</div>
+
+<div class="photo-modal" *ngIf="enlargedPhoto" (click)="closePhoto()">
+  <img [src]="enlargedPhoto" alt="Enlarged" (click)="$event.stopPropagation()">
+  <button class="close-modal-btn" (click)="closePhoto()">✕</button>
 </div>

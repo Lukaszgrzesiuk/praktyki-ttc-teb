@@ -18,13 +18,14 @@ export class DashboardComponent implements OnInit {
   helpfulness: number = 0;
   easeOfCreation: number = 0;
   
-  // Zmienne na pliki
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
 
   editingNoteId: number | null = null;
   showForm: boolean = false;
+
+  enlargedPhoto: string | null = null;
 
   constructor(private noteService: NoteService) {}
 
@@ -44,7 +45,6 @@ export class DashboardComponent implements OnInit {
     if (!this.showForm) this.resetForm();
   }
 
-  // Obsługa wyboru plików z dysku
   onFileSelected(event: any, type: string) {
     const file = event.target.files[0];
     if (file) {
@@ -55,14 +55,11 @@ export class DashboardComponent implements OnInit {
   }
 
   saveNote() {
-    // Backend wymaga [FromForm], więc używamy FormData
     const formData = new FormData();
     formData.append('Title', this.newTitle);
     formData.append('Content', this.newContent);
-    formData.append('Permissions', 'Public'); // Twardo wpisane, bo backend tego wymaga
-    formData.append('Author', 'Mateusz');     // Twardo wpisane
-
-    // Dodawanie plików (jeśli zostały wybrane)
+    formData.append('Permissions', 'Public');
+    formData.append('Author', 'Mateusz');
     if (this.selectedPhoto) formData.append('Photo', this.selectedPhoto);
     if (this.selectedVideo) formData.append('Video', this.selectedVideo);
     if (this.selectedAudio) formData.append('Audio', this.selectedAudio);
@@ -100,6 +97,9 @@ export class DashboardComponent implements OnInit {
     if (value <= 8) return '😊';
     return '🤩';
   }
+
+  openPhoto(url: string) { this.enlargedPhoto = url; }
+  closePhoto() { this.enlargedPhoto = null; }
 
   resetForm() {
     this.newTitle = '';
