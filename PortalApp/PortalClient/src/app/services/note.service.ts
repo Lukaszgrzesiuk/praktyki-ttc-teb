@@ -13,6 +13,9 @@ export interface Note {
   photoUrl?: string;
   videoUrl?: string;
   audioUrl?: string;
+  // DODANE POLA, żeby Angular nie krzyczał w dashboard.component.html:
+  helpfulness?: number;
+  easeOfUse?: number;
 }
 
 @Injectable({

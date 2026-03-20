@@ -18,6 +18,7 @@ export class DashboardComponent implements OnInit {
   helpfulness: number = 0;
   easeOfCreation: number = 0;
   
+  // Zmienne na pliki
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
@@ -25,6 +26,7 @@ export class DashboardComponent implements OnInit {
   editingNoteId: number | null = null;
   showForm: boolean = false;
 
+  // Zmienna do powiększania zdjęcia
   enlargedPhoto: string | null = null;
 
   constructor(private noteService: NoteService) {}
@@ -45,6 +47,7 @@ export class DashboardComponent implements OnInit {
     if (!this.showForm) this.resetForm();
   }
 
+  // Obsługa wyboru plików z dysku
   onFileSelected(event: any, type: string) {
     const file = event.target.files[0];
     if (file) {
@@ -55,11 +58,16 @@ export class DashboardComponent implements OnInit {
   }
 
   saveNote() {
+    // Backend wymaga [FromForm], więc używamy FormData
     const formData = new FormData();
     formData.append('Title', this.newTitle);
     formData.append('Content', this.newContent);
-    formData.append('Permissions', 'Public');
-    formData.append('Author', 'Mateusz');
+    formData.append('Helpfulness', this.helpfulness.toString());
+    formData.append('EaseOfUse', this.easeOfCreation.toString());
+    formData.append('Permissions', 'Public'); // Twardo wpisane, bo backend tego wymaga
+    formData.append('Author', 'Mateusz');     // Twardo wpisane
+
+    // Dodawanie plików (jeśli zostały wybrane)
     if (this.selectedPhoto) formData.append('Photo', this.selectedPhoto);
     if (this.selectedVideo) formData.append('Video', this.selectedVideo);
     if (this.selectedAudio) formData.append('Audio', this.selectedAudio);
@@ -78,6 +86,9 @@ export class DashboardComponent implements OnInit {
     this.editingNoteId = note.id ?? null;
     this.newTitle = note.title;
     this.newContent = note.content;
+    // Zabezpieczenie: jeśli backend nie przysłał oceny, przypisz 0
+    this.helpfulness = note.helpfulness ?? 0;
+    this.easeOfCreation = note.easeOfUse ?? 0;
   }
 
   deleteNote(id: number | undefined) {
@@ -90,14 +101,17 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  getEmoji(value: number): string {
-    if (value <= 2) return '😢';
-    if (value <= 4) return '😐';
-    if (value <= 6) return '🙂';
-    if (value <= 8) return '😊';
+  // Bezpieczna funkcja getEmoji akceptująca number lub undefined
+  getEmoji(value: number | undefined): string {
+    const val = value ?? 0; // Jeśli value nie istnieje, traktuj jako 0
+    if (val <= 2) return '😢';
+    if (val <= 4) return '😐';
+    if (val <= 6) return '🙂';
+    if (val <= 8) return '😊';
     return '🤩';
   }
 
+  // Funkcje do obsługi modala powiększającego zdjęcie
   openPhoto(url: string) { this.enlargedPhoto = url; }
   closePhoto() { this.enlargedPhoto = null; }
 
