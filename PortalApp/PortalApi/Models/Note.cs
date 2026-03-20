@@ -4,9 +4,9 @@ namespace PortalApi.Models
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
-        public string Content { get; set; } = string.Empty;
-        public string Permissions { get; set; } = "Public";
-        public string Author { get; set; } = "User";
+        public string? Content { get; set; } // Optional in DB
+        public string? Permissions { get; set; } = "Public";
+        public string? Author { get; set; } = "User";
         public DateTime CreationDate { get; set; } = DateTime.Now;
 
         public string? PhotoUrl { get; set; }
