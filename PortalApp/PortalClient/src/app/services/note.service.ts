@@ -13,7 +13,7 @@ export interface Note {
 
 @Injectable({ providedIn: 'root' })
 export class NoteService {
-  // ✅ Adres Twojego Backendu na porcie 5000
+  
   private apiUrl = 'http://localhost:5000/api/Notes'; 
 
   constructor(private http: HttpClient) {}

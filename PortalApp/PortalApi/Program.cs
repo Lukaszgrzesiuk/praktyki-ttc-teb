@@ -11,13 +11,17 @@ builder.WebHost.UseUrls("http://localhost:5000");
 builder.Services.AddControllers(); 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Application Services
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+// NEW: Added AdminUserService to fix the Dependency Injection (DI) error!
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 
-// POBIERAMY CONNECTION STRING Z PLIKU appsettings.json!
-// Dzięki temu zarówno Twój DbContext, jak i Twój NotesController będą korzystać z tej samej bazy.
+// GET CONNECTION STRING FROM appsettings.json
+// This ensures both DbContext and ADO.NET services use the same database.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                       ?? throw new InvalidOperationException("Nie znaleziono Connection Stringa w appsettings.json!");
+                       ?? throw new InvalidOperationException("Connection string not found in appsettings.json!");
 
 // Database Setup (Entity Framework)
 builder.Services.AddDbContext<MyDbContext>(options => 
@@ -44,7 +48,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger"; 
 });
 
-// Ważne: CORS musi być przed Autoryzacją i Mapowaniem
+// Important: CORS middleware must be placed BEFORE Authorization and MapControllers
 app.UseCors("AllowAngular");
 app.UseAuthorization();
 

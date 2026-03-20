@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using PortalApi.Models;
+using System;
 
 namespace PortalApi.Controllers
 {
@@ -53,19 +54,19 @@ namespace PortalApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Note>> AddNote([FromForm] NoteCreateDto dto)
+        public async Task<ActionResult<Note>> AddNote([FromForm] NoteCreateDto note)
         {
-            
-            string? photoUrl = await SaveFileAsync(dto.Photo, "photos");
-            string? videoUrl = await SaveFileAsync(dto.Video, "videos");
-            string? audioUrl = await SaveFileAsync(dto.Audio, "audio");
+            Console.WriteLine(note.Title);
+            string? photoUrl = await SaveFileAsync(note.Photo, "photos");
+            string? videoUrl = await SaveFileAsync(note.Video, "videos");
+            string? audioUrl = await SaveFileAsync(note.Audio, "audio");
 
             var newNote = new Note
             {
-                Title = dto.Title,
-                Content = dto.Content,
-                Permissions = dto.Permissions,
-                Author = dto.Author,
+                Title = note.Title,
+                Content = note.Content,
+                Permissions = note.Permissions,
+                Author = note.Author,
                 CreationDate = DateTime.Now,
                 PhotoUrl = photoUrl,
                 VideoUrl = videoUrl,
