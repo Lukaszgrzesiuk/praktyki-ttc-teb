@@ -9,9 +9,13 @@ namespace PortalApi.Models
         public string Author { get; set; } = "User";
         public DateTime CreationDate { get; set; } = DateTime.Now;
 
-        
         public string? PhotoUrl { get; set; }
         public string? VideoUrl { get; set; }
         public string? AudioUrl { get; set; }
+
+        public int? GroupId { get; set; }
+        public int? AuthorId { get; set; }
+        public byte? HelpfulnessRating { get; set; }
+        public byte? CreationEaseRating { get; set; }
     }
 }
