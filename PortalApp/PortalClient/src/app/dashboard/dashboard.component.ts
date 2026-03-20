@@ -2,11 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NoteService, Note } from '../services/note.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { UserPanelComponent } from '../panel/user-panel.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, UserPanelComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'] // Make sure you have this file
 })
