@@ -1,66 +1,78 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NoteService, Note } from '../services/note.service';
+import { NoteService } from '../services/note.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+
+export interface Note {
+  id?: number;
+  title?: string;
+  content?: string;
+  permissions?: string; 
+  author?: string;
+  creationDate?: string | Date;
+  helpfulness: number;      // Added field for rating
+  easeOfCreation: number;   // Added field for rating
+  photo?: File | null;
+  video?: File | null;
+  audio?: File | null;
+  photoUrl?: SafeUrl | null;
+  videoUrl?: SafeUrl | null;
+  audioUrl?: SafeUrl | null;
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DatePipe],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'] // Make sure you have this file
+  styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
   notesHistory: Note[] = [];
-  
-  // Form variables
+  showForm: boolean = false;
   newTitle: string = '';
   newContent: string = '';
   
-  // Ratings (Default to 1, not 0, due to SQL CHECK constraint)
-  helpfulnessRating: number = 1;
-  creationEaseRating: number = 1;
+  // Rating logic integration
+  helpfulness = 5;
+  easeOfCreation = 5;
+  emojis = ['😡', '😠', '😞', '😕', '😐', '🙂', '😊', '😄', '🤩', '🥰'];
 
-  // Relational variables
-  groupId: number | null = null;
-  authorId: number | null = null;
-  
-  // SIMULATED LOGGED-IN USER ID (to be replaced with real auth service later)
-  currentLoggedInUserId: number = 1; 
+  editingNoteId: number | null = null; 
 
-  // File variables
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
 
-  editingNoteId: number | null = null;
-  showForm: boolean = false;
+  enlargedPhoto: SafeUrl | null = null;
 
-  // Variable for enlarging photos
-  enlargedPhoto: string | null = null;
-
-  constructor(private noteService: NoteService) {}
+  private noteService = inject(NoteService);
+  private sanitizer = inject(DomSanitizer);
 
   ngOnInit() {
-    // Load notes ONLY for the current user
-    this.loadNotes();
+    this.fetchNotes();
   }
 
-  loadNotes() {
-    // Uses the new endpoint: GET /api/notes/user/1
-    this.noteService.getNotesForUser(this.currentLoggedInUserId).subscribe({
-      next: (data) => { this.notesHistory = data; },
-      error: (err) => console.error('Fetch error:', err)
+  getEmoji(rating: number): string {
+    return this.emojis[rating - 1];
+  }
+
+  fetchNotes() {
+    this.noteService.getNotes().subscribe({
+      next: (data: any) => this.notesHistory = data,
+      error: (err: any) => console.error('Fetch error:', err)
     });
   }
 
   toggleForm() {
     this.showForm = !this.showForm;
-    if (!this.showForm) this.resetForm();
+    if (!this.showForm) {
+      this.resetForm();
+    }
   }
 
-  // Handle local file selection
-  onFileSelected(event: any, type: string) {
+  onFileSelected(event: any, type: 'photo' | 'video' | 'audio') {
     const file = event.target.files[0];
     if (file) {
       if (type === 'photo') this.selectedPhoto = file;
@@ -69,89 +81,80 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  saveNote() {
-    // Backend requires [FromForm], so we use FormData
-    const formData = new FormData();
-    formData.append('Title', this.newTitle);
-    formData.append('Content', this.newContent);
-    formData.append('Permissions', 'Public'); // Hardcoded for now
-    formData.append('Author', 'Current User'); // Hardcoded for now
+  openPhoto(url: any) {
+    this.enlargedPhoto = url;
+  }
 
-    // Append ratings
-    formData.append('HelpfulnessRating', this.helpfulnessRating.toString());
-    formData.append('CreationEaseRating', this.creationEaseRating.toString());
-    
-    // Save current logged-in user as the note's AuthorId
-    formData.append('AuthorId', this.currentLoggedInUserId.toString());
-    
-    // If a group was selected, append it
-    if (this.groupId) {
-      formData.append('GroupId', this.groupId.toString());
-    }
-
-    // Append files if they were selected
-    if (this.selectedPhoto) formData.append('Photo', this.selectedPhoto);
-    if (this.selectedVideo) formData.append('Video', this.selectedVideo);
-    if (this.selectedAudio) formData.append('Audio', this.selectedAudio);
-
-    this.noteService.addNote(formData).subscribe({
-      next: (savedNote) => {
-        // Reload list to ensure all relationships and new data are fetched properly
-        this.loadNotes();
-        this.toggleForm();
-      },
-      error: (err) => alert('Error saving to backend!')
-    });
+  closePhoto() {
+    this.enlargedPhoto = null;
   }
 
   editNote(note: Note) {
     this.showForm = true;
-    this.editingNoteId = note.id ?? null;
-    this.newTitle = note.title;
-    this.newContent = note.content ?? '';
-    
-    // Fallback to 1 to satisfy SQL Server constraints
-    this.helpfulnessRating = note.helpfulnessRating ?? 1;
-    this.creationEaseRating = note.creationEaseRating ?? 1;
-    
-    this.groupId = note.groupId ?? null;
+    this.editingNoteId = note.id || null;
+    this.newTitle = note.title || '';
+    this.newContent = note.content || '';
+    this.helpfulness = note.helpfulness || 5;
+    this.easeOfCreation = note.easeOfCreation || 5;
+    this.selectedPhoto = note.photo || null;
+    this.selectedVideo = note.video || null;
+    this.selectedAudio = note.audio || null;
   }
 
-  deleteNote(id: number | undefined) {
-    if (id && confirm('Delete this note?')) {
-      this.noteService.deleteNote(id).subscribe({
-        next: () => {
-          this.notesHistory = this.notesHistory.filter(n => n.id !== id);
-        }
-      });
+  saveNote() {
+    if (!this.newTitle || !this.newContent) return;
+    
+    let pUrl = null;
+    let vUrl = null;
+    let aUrl = null;
+
+    if (this.selectedPhoto) pUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedPhoto));
+    if (this.selectedVideo) vUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedVideo));
+    if (this.selectedAudio) aUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedAudio));
+
+    if (this.editingNoteId) {
+      const noteIndex = this.notesHistory.findIndex(n => n.id === this.editingNoteId);
+      if (noteIndex !== -1) {
+        this.notesHistory[noteIndex].title = this.newTitle;
+        this.notesHistory[noteIndex].content = this.newContent;
+        this.notesHistory[noteIndex].helpfulness = this.helpfulness;
+        this.notesHistory[noteIndex].easeOfCreation = this.easeOfCreation;
+        if (this.selectedPhoto) this.notesHistory[noteIndex].photoUrl = pUrl;
+        if (this.selectedVideo) this.notesHistory[noteIndex].videoUrl = vUrl;
+        if (this.selectedAudio) this.notesHistory[noteIndex].audioUrl = aUrl;
+      }
+    } else {
+      const newNote: Note = {
+        id: Math.floor(Math.random() * 1000), 
+        title: this.newTitle,
+        content: this.newContent,
+        permissions: 'Public',
+        author: 'User',
+        creationDate: new Date().toISOString(),
+        helpfulness: this.helpfulness,
+        easeOfCreation: this.easeOfCreation,
+        photo: this.selectedPhoto,
+        video: this.selectedVideo,
+        audio: this.selectedAudio,
+        photoUrl: pUrl,
+        videoUrl: vUrl,
+        audioUrl: aUrl
+      };
+      this.notesHistory.unshift(newNote);
     }
+    
+    this.resetForm();
+    this.showForm = false;
   }
-
-  // Safe getEmoji function accepting number or undefined
-  getEmoji(value: number | undefined): string {
-    const val = value ?? 1; // Fallback to 1
-    if (val <= 2) return '😢';
-    if (val <= 4) return '😐';
-    if (val <= 6) return '🙂';
-    if (val <= 8) return '😊';
-    return '🤩';
-  }
-
-  // Photo modal functions
-  openPhoto(url: string) { this.enlargedPhoto = url; }
-  closePhoto() { this.enlargedPhoto = null; }
 
   resetForm() {
     this.newTitle = '';
     this.newContent = '';
-    // Reset to 1, not 0!
-    this.helpfulnessRating = 1;
-    this.creationEaseRating = 1;
-    this.groupId = null;
-    
     this.selectedPhoto = null;
     this.selectedVideo = null;
     this.selectedAudio = null;
     this.editingNoteId = null;
+    this.helpfulness = 5;
+    this.easeOfCreation = 5;
   }
 }

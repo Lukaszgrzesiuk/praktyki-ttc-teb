@@ -173,9 +173,9 @@ namespace PortalApi.Controllers
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Title", newNote.Title);
-                    cmd.Parameters.AddWithValue("@Content", (object?)newNote.Content ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Permissions", (object?)newNote.Permissions ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Author", (object?)newNote.Author ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Content", newNote.Content);
+                    cmd.Parameters.AddWithValue("@Permissions", newNote.Permissions);
+                    cmd.Parameters.AddWithValue("@Author", newNote.Author);
                     cmd.Parameters.AddWithValue("@CreationDate", newNote.CreationDate);
                     cmd.Parameters.AddWithValue("@PhotoUrl", (object?)newNote.PhotoUrl ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@VideoUrl", (object?)newNote.VideoUrl ?? DBNull.Value);
