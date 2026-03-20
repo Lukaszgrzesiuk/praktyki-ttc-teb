@@ -18,7 +18,7 @@ namespace PortalApi.Controllers
             _env = env;
         }
 
-        // --- Smart endpoint handling Admin group & regular Group sharing ---
+        // --- NEW: Smart endpoint handling Admin group & regular Group sharing ---
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<IEnumerable<Note>>> GetNotesForUser(int userId)
         {
@@ -99,7 +99,7 @@ namespace PortalApi.Controllers
             return Ok(notes);
         }
 
-        // --- Standard Get endpoint as a fallback ---
+        // --- UPDATED: Standard Get endpoint mapped to the new columns ---
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Note>>> GetNotes()
         {
@@ -108,7 +108,7 @@ namespace PortalApi.Controllers
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
-                string query = "SELECT Id, Title, Content, Permissions, Author, CreationDate, PhotoUrl, VideoUrl, AudioUrl, HelpfulnessRating, CreationEaseRating, group_id, author_id FROM dbo.Notes ORDER BY CreationDate DESC";
+                string query = "SELECT Id, Title, Content, Permissions, Author, CreationDate, PhotoUrl, VideoUrl, AudioUrl, HelpfulnessRating, CreationEaseRating, group_id, author_id FROM Notes ORDER BY CreationDate DESC";
                 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
@@ -137,10 +137,11 @@ namespace PortalApi.Controllers
             return Ok(notes);
         }
 
-        // --- AddNote inserts all new fields into SQL ---
+        // --- UPDATED: AddNote inserts the new fields into SQL ---
         [HttpPost]
         public async Task<ActionResult<Note>> AddNote([FromForm] NoteCreateDto note)
         {
+            Console.WriteLine(note.Title);
             string? photoUrl = await SaveFileAsync(note.Photo, "photos");
             string? videoUrl = await SaveFileAsync(note.Video, "videos");
             string? audioUrl = await SaveFileAsync(note.Audio, "audio");
@@ -155,8 +156,8 @@ namespace PortalApi.Controllers
                 PhotoUrl = photoUrl,
                 VideoUrl = videoUrl,
                 AudioUrl = audioUrl,
-                HelpfulnessRating = note.HelpfulnessRating,
-                CreationEaseRating = note.CreationEaseRating,
+                HelpfulnessRating = note.Helpfulness,
+                CreationEaseRating = note.EaseOfCreation,
                 GroupId = note.GroupId,
                 AuthorId = note.AuthorId
             };
@@ -165,7 +166,7 @@ namespace PortalApi.Controllers
             {
                 await conn.OpenAsync();
                 string query = @"
-                    INSERT INTO dbo.Notes (Title, Content, Permissions, Author, CreationDate, PhotoUrl, VideoUrl, AudioUrl, HelpfulnessRating, CreationEaseRating, group_id, author_id) 
+                    INSERT INTO Notes (Title, Content, Permissions, Author, CreationDate, PhotoUrl, VideoUrl, AudioUrl, HelpfulnessRating, CreationEaseRating, group_id, author_id) 
                     OUTPUT INSERTED.Id 
                     VALUES (@Title, @Content, @Permissions, @Author, @CreationDate, @PhotoUrl, @VideoUrl, @AudioUrl, @HelpfulnessRating, @CreationEaseRating, @GroupId, @AuthorId)";
 

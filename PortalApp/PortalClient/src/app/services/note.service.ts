@@ -25,7 +25,8 @@ export interface Note {
   providedIn: 'root'
 })
 export class NoteService {
-  private apiUrl = 'http://localhost:5000/api/notes';
+  
+  private apiUrl = 'http://localhost:5000/api/Notes'; 
 
   constructor(private http: HttpClient) {}
 

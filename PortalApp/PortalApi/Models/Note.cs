@@ -13,11 +13,8 @@ namespace PortalApi.Models
         public string? VideoUrl { get; set; }
         public string? AudioUrl { get; set; }
 
-        // Foreign keys from SQL schema
         public int? GroupId { get; set; }
         public int? AuthorId { get; set; }
-
-        // Ratings (Mapped to TINYINT in the database)
         public byte? HelpfulnessRating { get; set; }
         public byte? CreationEaseRating { get; set; }
     }

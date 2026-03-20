@@ -10,12 +10,12 @@ namespace PortalApi.Models
         public string? Author { get; set; } = "User";
 
         // New fields for ratings and relations
-        public byte? HelpfulnessRating { get; set; }
-        public byte? CreationEaseRating { get; set; }
+        public byte? Helpfulness { get; set; }
+        public byte? EaseOfCreation { get; set; }
         public int? GroupId { get; set; }
         public int? AuthorId { get; set; }
 
-        // Files submitted from the form via FormData
+        // Files submitted from the form
         public IFormFile? Photo { get; set; }
         public IFormFile? Video { get; set; }
         public IFormFile? Audio { get; set; }
