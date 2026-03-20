@@ -8,17 +8,27 @@ import { NoteService, Note } from '../services/note.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'] // Make sure you have this file
 })
 export class DashboardComponent implements OnInit {
   notesHistory: Note[] = [];
   
+  // Form variables
   newTitle: string = '';
   newContent: string = '';
-  helpfulness: number = 0;
-  easeOfCreation: number = 0;
   
-  // Zmienne na pliki
+  // Ratings (Default to 1, not 0, due to SQL CHECK constraint)
+  helpfulnessRating: number = 1;
+  creationEaseRating: number = 1;
+
+  // Relational variables
+  groupId: number | null = null;
+  authorId: number | null = null;
+  
+  // SIMULATED LOGGED-IN USER ID (to be replaced with real auth service later)
+  currentLoggedInUserId: number = 1; 
+
+  // File variables
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
@@ -26,19 +36,21 @@ export class DashboardComponent implements OnInit {
   editingNoteId: number | null = null;
   showForm: boolean = false;
 
-  // Zmienna do powiększania zdjęcia
+  // Variable for enlarging photos
   enlargedPhoto: string | null = null;
 
   constructor(private noteService: NoteService) {}
 
   ngOnInit() {
+    // Load notes ONLY for the current user
     this.loadNotes();
   }
 
   loadNotes() {
-    this.noteService.getNotes().subscribe({
+    // Uses the new endpoint: GET /api/notes/user/1
+    this.noteService.getNotesForUser(this.currentLoggedInUserId).subscribe({
       next: (data) => { this.notesHistory = data; },
-      error: (err) => console.error('Błąd pobierania:', err)
+      error: (err) => console.error('Fetch error:', err)
     });
   }
 
@@ -47,7 +59,7 @@ export class DashboardComponent implements OnInit {
     if (!this.showForm) this.resetForm();
   }
 
-  // Obsługa wyboru plików z dysku
+  // Handle local file selection
   onFileSelected(event: any, type: string) {
     const file = event.target.files[0];
     if (file) {
@@ -58,26 +70,37 @@ export class DashboardComponent implements OnInit {
   }
 
   saveNote() {
-    // Backend wymaga [FromForm], więc używamy FormData
+    // Backend requires [FromForm], so we use FormData
     const formData = new FormData();
     formData.append('Title', this.newTitle);
     formData.append('Content', this.newContent);
-    formData.append('Helpfulness', this.helpfulness.toString());
-    formData.append('EaseOfUse', this.easeOfCreation.toString());
-    formData.append('Permissions', 'Public'); // Twardo wpisane, bo backend tego wymaga
-    formData.append('Author', 'Mateusz');     // Twardo wpisane
+    formData.append('Permissions', 'Public'); // Hardcoded for now
+    formData.append('Author', 'Current User'); // Hardcoded for now
 
-    // Dodawanie plików (jeśli zostały wybrane)
+    // Append ratings
+    formData.append('HelpfulnessRating', this.helpfulnessRating.toString());
+    formData.append('CreationEaseRating', this.creationEaseRating.toString());
+    
+    // Save current logged-in user as the note's AuthorId
+    formData.append('AuthorId', this.currentLoggedInUserId.toString());
+    
+    // If a group was selected, append it
+    if (this.groupId) {
+      formData.append('GroupId', this.groupId.toString());
+    }
+
+    // Append files if they were selected
     if (this.selectedPhoto) formData.append('Photo', this.selectedPhoto);
     if (this.selectedVideo) formData.append('Video', this.selectedVideo);
     if (this.selectedAudio) formData.append('Audio', this.selectedAudio);
 
     this.noteService.addNote(formData).subscribe({
       next: (savedNote) => {
-        this.notesHistory.unshift(savedNote);
+        // Reload list to ensure all relationships and new data are fetched properly
+        this.loadNotes();
         this.toggleForm();
       },
-      error: (err) => alert('Błąd zapisu w backendzie! Sprawdź czy silnik działa.')
+      error: (err) => alert('Error saving to backend!')
     });
   }
 
@@ -85,14 +108,17 @@ export class DashboardComponent implements OnInit {
     this.showForm = true;
     this.editingNoteId = note.id ?? null;
     this.newTitle = note.title;
-    this.newContent = note.content;
-    // Zabezpieczenie: jeśli backend nie przysłał oceny, przypisz 0
-    this.helpfulness = note.helpfulness ?? 0;
-    this.easeOfCreation = note.easeOfUse ?? 0;
+    this.newContent = note.content ?? '';
+    
+    // Fallback to 1 to satisfy SQL Server constraints
+    this.helpfulnessRating = note.helpfulnessRating ?? 1;
+    this.creationEaseRating = note.creationEaseRating ?? 1;
+    
+    this.groupId = note.groupId ?? null;
   }
 
   deleteNote(id: number | undefined) {
-    if (id && confirm('Usunąć notatkę?')) {
+    if (id && confirm('Delete this note?')) {
       this.noteService.deleteNote(id).subscribe({
         next: () => {
           this.notesHistory = this.notesHistory.filter(n => n.id !== id);
@@ -101,9 +127,9 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  // Bezpieczna funkcja getEmoji akceptująca number lub undefined
+  // Safe getEmoji function accepting number or undefined
   getEmoji(value: number | undefined): string {
-    const val = value ?? 0; // Jeśli value nie istnieje, traktuj jako 0
+    const val = value ?? 1; // Fallback to 1
     if (val <= 2) return '😢';
     if (val <= 4) return '😐';
     if (val <= 6) return '🙂';
@@ -111,15 +137,18 @@ export class DashboardComponent implements OnInit {
     return '🤩';
   }
 
-  // Funkcje do obsługi modala powiększającego zdjęcie
+  // Photo modal functions
   openPhoto(url: string) { this.enlargedPhoto = url; }
   closePhoto() { this.enlargedPhoto = null; }
 
   resetForm() {
     this.newTitle = '';
     this.newContent = '';
-    this.helpfulness = 0;
-    this.easeOfCreation = 0;
+    // Reset to 1, not 0!
+    this.helpfulnessRating = 1;
+    this.creationEaseRating = 1;
+    this.groupId = null;
+    
     this.selectedPhoto = null;
     this.selectedVideo = null;
     this.selectedAudio = null;

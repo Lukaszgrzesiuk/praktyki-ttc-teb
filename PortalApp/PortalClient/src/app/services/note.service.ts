@@ -2,20 +2,23 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// Zaktualizowany interfejs pod nowy model bazy danych
 export interface Note {
   id?: number;
   title: string;
-  content: string;
-  permissions: string;
-  author: string;
-  creationDate?: string; // Backend zwraca to jako creationDate (camelCase)
+  content?: string;
+  permissions?: string;
+  author?: string;
+  creationDate?: string;
+  
   photoUrl?: string;
   videoUrl?: string;
   audioUrl?: string;
-  // DODANE POLA, żeby Angular nie krzyczał w dashboard.component.html:
-  helpfulness?: number;
-  easeOfUse?: number;
+  
+  // New properties to match the backend Dto and SQL
+  groupId?: number;
+  authorId?: number;
+  helpfulnessRating?: number;
+  creationEaseRating?: number;
 }
 
 @Injectable({
@@ -26,11 +29,16 @@ export class NoteService {
 
   constructor(private http: HttpClient) {}
 
+  // Fetch notes specifically for a user based on the new endpoint
+  getNotesForUser(userId: number): Observable<Note[]> {
+    return this.http.get<Note[]>(`${this.apiUrl}/user/${userId}`);
+  }
+
+  // Fallback to fetch all notes
   getNotes(): Observable<Note[]> {
     return this.http.get<Note[]>(this.apiUrl);
   }
 
-  // ZMIANA: Wysyłamy FormData (bo kontroler ma [FromForm])
   addNote(formData: FormData): Observable<Note> {
     return this.http.post<Note>(this.apiUrl, formData);
   }

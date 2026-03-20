@@ -14,10 +14,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 
-// POBIERAMY CONNECTION STRING Z PLIKU appsettings.json!
-// Dzięki temu zarówno Twój DbContext, jak i Twój NotesController będą korzystać z tej samej bazy.
+// GETTING CONNECTION STRING FROM appsettings.json!
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                       ?? throw new InvalidOperationException("Nie znaleziono Connection Stringa w appsettings.json!");
+                       ?? throw new InvalidOperationException("Connection string not found in appsettings.json!");
 
 // Database Setup (Entity Framework)
 builder.Services.AddDbContext<MyDbContext>(options => 
@@ -44,7 +43,10 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger"; 
 });
 
-// Ważne: CORS musi być przed Autoryzacją i Mapowaniem
+// CRUCIAL FIX: Enable serving static files from the wwwroot folder (photos, videos, audio)
+app.UseStaticFiles();
+
+// Important: CORS must be placed before Authorization and Controller Mapping
 app.UseCors("AllowAngular");
 app.UseAuthorization();
 

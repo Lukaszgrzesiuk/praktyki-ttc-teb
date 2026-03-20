@@ -5,11 +5,17 @@ namespace PortalApi.Models
     public class NoteCreateDto
     {
         public string Title { get; set; } = string.Empty;
-        public string Content { get; set; } = string.Empty;
-        public string Permissions { get; set; } = "Public";
-        public string Author { get; set; } = "User";
+        public string? Content { get; set; }
+        public string? Permissions { get; set; } = "Public";
+        public string? Author { get; set; } = "User";
 
-        // Files submitted from the form
+        // New fields for ratings and relations
+        public byte? HelpfulnessRating { get; set; }
+        public byte? CreationEaseRating { get; set; }
+        public int? GroupId { get; set; }
+        public int? AuthorId { get; set; }
+
+        // Files submitted from the form via FormData
         public IFormFile? Photo { get; set; }
         public IFormFile? Video { get; set; }
         public IFormFile? Audio { get; set; }
