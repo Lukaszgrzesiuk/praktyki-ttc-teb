@@ -1,45 +1,40 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+using PortalApi.Models;
+using PortalApi.Services;
+using System.Threading.Tasks;
 
 namespace PortalApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    // Token requirement removed. Open access for testing the Notes Feed.
     public class NotesController : ControllerBase
     {
-        // A temporary in-memory list to simulate a database for notes
-        private static readonly List<string> _notesFeed = new List<string>
+        private readonly INoteService _noteService;
+
+        public NotesController(INoteService noteService)
         {
-            "Welcome to the Notes Feed!",
-            "This is a sample note to test the application."
-        };
+            _noteService = noteService;
+        }
 
         // GET: api/notes
         [HttpGet]
-        public IActionResult GetAllNotes()
+        public async Task<IActionResult> GetAllNotes()
         {
-            // Returns the list of notes
-            return Ok(_notesFeed);
+            var notes = await _noteService.GetAllNotesAsync();
+            return Ok(notes);
         }
 
         // POST: api/notes
         [HttpPost]
-        public IActionResult CreateNote([FromBody] NoteRequest request)
+        public async Task<IActionResult> CreateNote([FromBody] Note request)
         {
-            // Validate if the note is not empty or null
-            if (request == null || string.IsNullOrWhiteSpace(request.Content))
+            if (string.IsNullOrWhiteSpace(request.Content))
             {
                 return BadRequest(new { message = "Note content cannot be empty." });
             }
 
-            // Add the new note to our feed
-            _notesFeed.Add(request.Content);
-
-            return Ok(new { message = "Note added successfully.", note = request.Content });
+            var createdNote = await _noteService.CreateNoteAsync(request);
+            return Ok(createdNote);
         }
     }
-
-    // Data Transfer Object for creating a new note
-    public record NoteRequest(string Content);
 }
