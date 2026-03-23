@@ -12,8 +12,8 @@ namespace PortalApi.Models
         // New fields for ratings and relations
         public byte? HelpfulnessRating { get; set; }
         public byte? CreationEaseRating { get; set; }
-        public int? GroupId { get; set; }
-        public int? AuthorId { get; set; }
+        public int? group_id { get; set; }
+        public int? author_id { get; set; }
 
         // Files submitted from the form via FormData
         public IFormFile? Photo { get; set; }

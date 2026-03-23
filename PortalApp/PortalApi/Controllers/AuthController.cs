@@ -23,7 +23,7 @@ namespace PortalApi.Controllers
             var user = await _loginService.AuthenticateAsync(request.Login, request.Password);
             if (user == null) return Unauthorized(new { message = "Invalid credentials" });
 
-            return Ok(new { message = "Logged in successfully", user = user.Login });
+            return Ok(new { message = "Logged in successfully", userId = user.Id, userName = user.Login });
         }
 
         [HttpPost("register")]

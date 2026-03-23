@@ -1,14 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { NoteService, Note } from '../services/note.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'] // Make sure you have this file
+  styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
   notesHistory: Note[] = [];
@@ -17,16 +19,16 @@ export class DashboardComponent implements OnInit {
   newTitle: string = '';
   newContent: string = '';
   
-  // Ratings (Default to 1, not 0, due to SQL CHECK constraint)
+  // Ratings (Default to 1 due to SQL CHECK constraint)
   helpfulnessRating: number = 1;
   creationEaseRating: number = 1;
 
   // Relational variables
   groupId: number | null = null;
-  authorId: number | null = null;
   
-  // SIMULATED LOGGED-IN USER ID (to be replaced with real auth service later)
-  currentLoggedInUserId: number = 1; 
+  // Variables from session
+  currentLoggedInUserId: number | null = null; 
+  currentUserName: string = '';
 
   // File variables
   selectedPhoto: File | null = null;
@@ -39,19 +41,33 @@ export class DashboardComponent implements OnInit {
   // Variable for enlarging photos
   enlargedPhoto: string | null = null;
 
-  constructor(private noteService: NoteService) {}
+  constructor(
+    private noteService: NoteService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    // Load notes ONLY for the current user
-    this.loadNotes();
+    this.currentLoggedInUserId = this.authService.getCurrentUserId();
+    this.currentUserName = this.authService.getCurrentUserName();
+
+    if (this.currentLoggedInUserId) {
+      this.loadNotes();
+    }
   }
 
   loadNotes() {
-    // Uses the new endpoint: GET /api/notes/user/1
+    if (!this.currentLoggedInUserId) return;
+    
     this.noteService.getNotesForUser(this.currentLoggedInUserId).subscribe({
       next: (data) => { this.notesHistory = data; },
       error: (err) => console.error('Fetch error:', err)
     });
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   toggleForm() {
@@ -59,7 +75,6 @@ export class DashboardComponent implements OnInit {
     if (!this.showForm) this.resetForm();
   }
 
-  // Handle local file selection
   onFileSelected(event: any, type: string) {
     const file = event.target.files[0];
     if (file) {
@@ -70,33 +85,27 @@ export class DashboardComponent implements OnInit {
   }
 
   saveNote() {
-    // Backend requires [FromForm], so we use FormData
+    if (!this.currentLoggedInUserId) return;
+
     const formData = new FormData();
     formData.append('Title', this.newTitle);
     formData.append('Content', this.newContent);
-    formData.append('Permissions', 'Public'); // Hardcoded for now
-    formData.append('Author', 'Current User'); // Hardcoded for now
-
-    // Append ratings
+    formData.append('Permissions', 'Public'); 
+    formData.append('Author', this.currentUserName); 
     formData.append('HelpfulnessRating', this.helpfulnessRating.toString());
     formData.append('CreationEaseRating', this.creationEaseRating.toString());
-    
-    // Save current logged-in user as the note's AuthorId
     formData.append('AuthorId', this.currentLoggedInUserId.toString());
     
-    // If a group was selected, append it
     if (this.groupId) {
       formData.append('GroupId', this.groupId.toString());
     }
 
-    // Append files if they were selected
     if (this.selectedPhoto) formData.append('Photo', this.selectedPhoto);
     if (this.selectedVideo) formData.append('Video', this.selectedVideo);
     if (this.selectedAudio) formData.append('Audio', this.selectedAudio);
 
     this.noteService.addNote(formData).subscribe({
       next: (savedNote) => {
-        // Reload list to ensure all relationships and new data are fetched properly
         this.loadNotes();
         this.toggleForm();
       },
@@ -109,11 +118,8 @@ export class DashboardComponent implements OnInit {
     this.editingNoteId = note.id ?? null;
     this.newTitle = note.title;
     this.newContent = note.content ?? '';
-    
-    // Fallback to 1 to satisfy SQL Server constraints
     this.helpfulnessRating = note.helpfulnessRating ?? 1;
     this.creationEaseRating = note.creationEaseRating ?? 1;
-    
     this.groupId = note.groupId ?? null;
   }
 
@@ -127,9 +133,8 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  // Safe getEmoji function accepting number or undefined
   getEmoji(value: number | undefined): string {
-    const val = value ?? 1; // Fallback to 1
+    const val = value ?? 1;
     if (val <= 2) return '😢';
     if (val <= 4) return '😐';
     if (val <= 6) return '🙂';
@@ -137,14 +142,12 @@ export class DashboardComponent implements OnInit {
     return '🤩';
   }
 
-  // Photo modal functions
   openPhoto(url: string) { this.enlargedPhoto = url; }
   closePhoto() { this.enlargedPhoto = null; }
 
   resetForm() {
     this.newTitle = '';
     this.newContent = '';
-    // Reset to 1, not 0!
     this.helpfulnessRating = 1;
     this.creationEaseRating = 1;
     this.groupId = null;

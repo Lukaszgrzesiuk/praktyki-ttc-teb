@@ -157,8 +157,8 @@ namespace PortalApi.Controllers
                 AudioUrl = audioUrl,
                 HelpfulnessRating = note.HelpfulnessRating,
                 CreationEaseRating = note.CreationEaseRating,
-                GroupId = note.GroupId,
-                AuthorId = note.AuthorId
+                GroupId = note.group_id,
+                AuthorId = note.author_id
             };
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
