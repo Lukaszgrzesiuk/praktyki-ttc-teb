@@ -21,22 +21,19 @@ interface User {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-panel.component.html',
-  styleUrls: ['./admin-panel.component.css']
+  styleUrls: ['./admin-panel.component.css'] // FIX: styleUrls instead of styleUrl
 })
 export class AdminPanelComponent {
   users: User[] = [];
   selectedUser: User | null = null;
-  userIdCounter = 1;
+  userIdCounter: number = 1; // FIX: explicitly declare type
 
-  // Search query field
-  searchQuery = '';
-
-  // Fields for a new user (username and password)
-  newUserName = '';
-  newUserPassword = '';
-  
-  newGroupName = '';
-  newNoteTitle = '';
+  // FIX: Initialize all string properties to avoid TypeScript strict mode errors
+  searchQuery: string = '';
+  newUserName: string = '';
+  newUserPassword: string = '';
+  newGroupName: string = '';
+  newNoteTitle: string = '';
 
   // Dynamic list filtering users by input text
   get filteredUsers() {
