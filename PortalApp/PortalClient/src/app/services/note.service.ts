@@ -4,17 +4,23 @@ import { Observable } from 'rxjs';
 
 export interface Note {
   id?: number;
-  tytul: string;
-  tresc: string;
-  uprawnienia: string;
-  autor?: string;
-  dataUtworzenia?: string;
+  title: string;
+  content: string;
+  permissions: string;
+  author: string;
+  creationDate?: string;
+  photoUrl?: string;
+  videoUrl?: string;
+  audioUrl?: string;
+  helpfulness?: number;
+  easeOfUse?: number;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class NoteService {
-  // ✅ Adres Twojego Backendu na porcie 5000
-  private apiUrl = 'http://localhost:5000/api/Notes'; 
+  private apiUrl = 'http://localhost:5000/api/notes';
 
   constructor(private http: HttpClient) {}
 
@@ -22,7 +28,11 @@ export class NoteService {
     return this.http.get<Note[]>(this.apiUrl);
   }
 
-  addNote(note: Note): Observable<Note> {
-    return this.http.post<Note>(this.apiUrl, note);
+  addNote(formData: FormData): Observable<Note> {
+    return this.http.post<Note>(this.apiUrl, formData);
+  }
+
+  deleteNote(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

@@ -1,78 +1,56 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NoteService } from '../services/note.service';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-
-export interface Note {
-  id?: number;
-  title?: string;
-  content?: string;
-  permissions?: string; 
-  author?: string;
-  creationDate?: string | Date;
-  helpfulness: number;      // Added field for rating
-  easeOfCreation: number;   // Added field for rating
-  photo?: File | null;
-  video?: File | null;
-  audio?: File | null;
-  photoUrl?: SafeUrl | null;
-  videoUrl?: SafeUrl | null;
-  audioUrl?: SafeUrl | null;
-}
+import { NoteService, Note } from '../services/note.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
   notesHistory: Note[] = [];
-  showForm: boolean = false;
+  
   newTitle: string = '';
   newContent: string = '';
+  helpfulness: number = 0;
+  easeOfCreation: number = 0;
   
-  // Rating logic integration
-  helpfulness = 5;
-  easeOfCreation = 5;
-  emojis = ['😡', '😠', '😞', '😕', '😐', '🙂', '😊', '😄', '🤩', '🥰'];
-
-  editingNoteId: number | null = null; 
-
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
 
-  enlargedPhoto: SafeUrl | null = null;
+  editingNoteId: number | null = null;
+  showForm: boolean = false;
 
-  private noteService = inject(NoteService);
-  private sanitizer = inject(DomSanitizer);
+  enlargedPhoto: string | null = null;
+
+  chatMessages: { role: string, content: string }[] = [
+    { role: 'ai', content: 'Hi! Tell me what to note down, and I will create and rank it for you automatically.' }
+  ];
+  chatInput: string = '';
+
+  constructor(private noteService: NoteService) {}
 
   ngOnInit() {
-    this.fetchNotes();
+    this.loadNotes();
   }
 
-  getEmoji(rating: number): string {
-    return this.emojis[rating - 1];
-  }
-
-  fetchNotes() {
+  loadNotes() {
     this.noteService.getNotes().subscribe({
-      next: (data: any) => this.notesHistory = data,
-      error: (err: any) => console.error('Fetch error:', err)
+      next: (data) => { this.notesHistory = data; },
+      error: (err) => console.error(err)
     });
   }
 
   toggleForm() {
     this.showForm = !this.showForm;
-    if (!this.showForm) {
-      this.resetForm();
-    }
+    if (!this.showForm) this.resetForm();
   }
 
-  onFileSelected(event: any, type: 'photo' | 'video' | 'audio') {
+  onFileSelected(event: any, type: string) {
     const file = event.target.files[0];
     if (file) {
       if (type === 'photo') this.selectedPhoto = file;
@@ -81,80 +59,98 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  openPhoto(url: any) {
-    this.enlargedPhoto = url;
-  }
+  saveNote() {
+    const formData = new FormData();
+    formData.append('Title', this.newTitle);
+    formData.append('Content', this.newContent);
+    formData.append('Helpfulness', this.helpfulness.toString());
+    formData.append('EaseOfUse', this.easeOfCreation.toString());
+    formData.append('Permissions', 'Public');
+    formData.append('Author', 'Mateusz');
 
-  closePhoto() {
-    this.enlargedPhoto = null;
+    if (this.selectedPhoto) formData.append('Photo', this.selectedPhoto);
+    if (this.selectedVideo) formData.append('Video', this.selectedVideo);
+    if (this.selectedAudio) formData.append('Audio', this.selectedAudio);
+
+    this.noteService.addNote(formData).subscribe({
+      next: (savedNote) => {
+        this.notesHistory.unshift(savedNote);
+        this.toggleForm();
+      },
+      error: (err) => alert('Błąd komunikacji z backendem.')
+    });
   }
 
   editNote(note: Note) {
     this.showForm = true;
-    this.editingNoteId = note.id || null;
-    this.newTitle = note.title || '';
-    this.newContent = note.content || '';
-    this.helpfulness = note.helpfulness || 5;
-    this.easeOfCreation = note.easeOfCreation || 5;
-    this.selectedPhoto = note.photo || null;
-    this.selectedVideo = note.video || null;
-    this.selectedAudio = note.audio || null;
+    this.editingNoteId = note.id ?? null;
+    this.newTitle = note.title;
+    this.newContent = note.content;
+    this.helpfulness = note.helpfulness ?? 0;
+    this.easeOfCreation = note.easeOfUse ?? 0;
   }
 
-  saveNote() {
-    if (!this.newTitle || !this.newContent) return;
-    
-    let pUrl = null;
-    let vUrl = null;
-    let aUrl = null;
-
-    if (this.selectedPhoto) pUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedPhoto));
-    if (this.selectedVideo) vUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedVideo));
-    if (this.selectedAudio) aUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.selectedAudio));
-
-    if (this.editingNoteId) {
-      const noteIndex = this.notesHistory.findIndex(n => n.id === this.editingNoteId);
-      if (noteIndex !== -1) {
-        this.notesHistory[noteIndex].title = this.newTitle;
-        this.notesHistory[noteIndex].content = this.newContent;
-        this.notesHistory[noteIndex].helpfulness = this.helpfulness;
-        this.notesHistory[noteIndex].easeOfCreation = this.easeOfCreation;
-        if (this.selectedPhoto) this.notesHistory[noteIndex].photoUrl = pUrl;
-        if (this.selectedVideo) this.notesHistory[noteIndex].videoUrl = vUrl;
-        if (this.selectedAudio) this.notesHistory[noteIndex].audioUrl = aUrl;
-      }
-    } else {
-      const newNote: Note = {
-        id: Math.floor(Math.random() * 1000), 
-        title: this.newTitle,
-        content: this.newContent,
-        permissions: 'Public',
-        author: 'User',
-        creationDate: new Date().toISOString(),
-        helpfulness: this.helpfulness,
-        easeOfCreation: this.easeOfCreation,
-        photo: this.selectedPhoto,
-        video: this.selectedVideo,
-        audio: this.selectedAudio,
-        photoUrl: pUrl,
-        videoUrl: vUrl,
-        audioUrl: aUrl
-      };
-      this.notesHistory.unshift(newNote);
+  deleteNote(id: number | undefined) {
+    if (id && confirm('Usunąć notatkę?')) {
+      this.noteService.deleteNote(id).subscribe({
+        next: () => {
+          this.notesHistory = this.notesHistory.filter(n => n.id !== id);
+        }
+      });
     }
-    
-    this.resetForm();
-    this.showForm = false;
   }
+
+  getEmoji(value: number | undefined): string {
+    const val = value ?? 0;
+    if (val <= 2) return '😢';
+    if (val <= 4) return '😐';
+    if (val <= 6) return '🙂';
+    if (val <= 8) return '😊';
+    return '🤩';
+  }
+
+  openPhoto(url: string) { this.enlargedPhoto = url; }
+  closePhoto() { this.enlargedPhoto = null; }
 
   resetForm() {
     this.newTitle = '';
     this.newContent = '';
+    this.helpfulness = 0;
+    this.easeOfCreation = 0;
     this.selectedPhoto = null;
     this.selectedVideo = null;
     this.selectedAudio = null;
     this.editingNoteId = null;
-    this.helpfulness = 5;
-    this.easeOfCreation = 5;
+  }
+
+  sendChatMessage() {
+    if (!this.chatInput.trim()) return;
+
+    const userText = this.chatInput;
+    this.chatMessages.push({ role: 'user', content: userText });
+    this.chatInput = '';
+
+    setTimeout(() => {
+      const generatedRank = Math.floor(Math.random() * 4) + 7;
+      const generatedEase = Math.floor(Math.random() * 5) + 5;
+
+      const formData = new FormData();
+      formData.append('Title', 'AI Note');
+      formData.append('Content', userText);
+      formData.append('Helpfulness', generatedRank.toString());
+      formData.append('EaseOfUse', generatedEase.toString());
+      formData.append('Permissions', 'Public');
+      formData.append('Author', 'AI Assistant');
+
+      this.noteService.addNote(formData).subscribe({
+        next: (savedNote) => {
+          this.notesHistory.unshift(savedNote);
+          this.chatMessages.push({ role: 'ai', content: `Done! I created the note and gave it a priority rank of ${generatedRank}/10.` });
+        },
+        error: (err) => {
+          this.chatMessages.push({ role: 'ai', content: 'Brak połączenia z serwerem. Nie udało się zapisać notatki.' });
+        }
+      });
+    }, 800);
   }
 }

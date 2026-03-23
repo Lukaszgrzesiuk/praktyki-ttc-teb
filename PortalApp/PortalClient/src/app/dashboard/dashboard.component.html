@@ -1,153 +1,119 @@
 <div class="main-container">
-  <header class="top-bar">
-    <div class="search-container">
-      <span class="search-icon">🔍</span>
-      <input type="text" placeholder="Search..." class="search-input">
-    </div>
-  </header>
+  <div class="top-bar">
+    <input type="text" class="search-input" placeholder="Search notes...">
+  </div>
 
   <div class="content-layout">
-    
-    <aside class="left-sidebar">
-      <div class="panel-header">Menu</div>
-      <p style="padding: 20px; color: gray;">
-        Here will be your AI chat (we'll add it later)
-      </p>
-    </aside>
+    <div class="left-sidebar">
+      <div class="panel-header">AI Assistant</div>
+      <div class="chat-container">
+        <div class="chat-messages">
+          <div *ngFor="let msg of chatMessages" class="chat-msg" [ngClass]="{'chat-user': msg.role === 'user', 'chat-ai': msg.role === 'ai'}">
+            {{msg.content}}
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" class="chat-input" placeholder="Ask AI to note...">
+          <button class="chat-send-btn" (click)="sendChatMessage()">➤</button>
+        </div>
+      </div>
+    </div>
 
-    <main class="center-content">
+    <div class="center-content">
       <div class="center-wrapper">
         @if (!showForm) {
-          <button class="huge-add-btn" (click)="toggleForm()">+ Add Note</button>
-        } @else {
+          <button class="huge-add-btn" (click)="toggleForm()">+ NEW NOTE</button>
+        }
+
+        @if (showForm) {
           <div class="note-form-area">
             <h2>{{ editingNoteId ? 'Edit Note' : 'New Note' }}</h2>
-            <div class="input-row">
-              <input [(ngModel)]="newTitle" placeholder="Title..." class="styled-input">
-            </div>
-
+            
+            <input [(ngModel)]="newTitle" class="styled-input" placeholder="Note Title">
+            
             <div class="rating-box">
-              <h3>Rate your note</h3>
-
-              <div class="slider-group">
+               <h3>RATE YOUR NOTE</h3>
+               <div class="slider-group">
                 <div class="label-row">
                   <label>How helpful is it???</label>
-                  <span class="current-emoji">{{ getEmoji(helpfulness) }} ({{ helpfulness }}/10)</span>
+                  <span class="current-emoji slider-cyan">{{getEmoji(helpfulness)}} ({{helpfulness}}/10)</span>
                 </div>
-                
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="10" 
-                  step="1" 
-                  [(ngModel)]="helpfulness" 
-                  class="emoji-slider"
-                >
-                
-                <div class="slider-ends">
-                  <span>😡</span>
-                  <span>🥰</span>
-                </div>
-              </div>
+                <input type="range" [(ngModel)]="helpfulness" min="0" max="10" class="emoji-slider slider-cyan">
+                <div class="slider-ends"><span>😢</span><span>🤩</span></div>
+               </div>
 
-              <div class="slider-group">
+               <div class="slider-group">
                 <div class="label-row">
                   <label>How easy was it to create?</label>
-                  <span class="current-emoji">{{ getEmoji(easeOfCreation) }} ({{ easeOfCreation }}/10)</span>
+                  <span class="current-emoji slider-green">{{getEmoji(easeOfCreation)}} ({{easeOfCreation}}/10)</span>
                 </div>
-                
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="10" 
-                  step="1" 
-                  [(ngModel)]="easeOfCreation" 
-                  class="emoji-slider"
-                >
-                
-                <div class="slider-ends">
-                  <span>😡</span>
-                  <span>🥰</span>
-                </div>
-              </div>
+                <input type="range" [(ngModel)]="easeOfCreation" min="0" max="10" class="emoji-slider slider-green">
+                <div class="slider-ends"><span>😢</span><span>🤩</span></div>
+               </div>
             </div>
-            <div class="input-row">
-              <textarea [(ngModel)]="newContent" rows="8" placeholder="Content..." class="styled-input"></textarea>
-            </div>
-            
-            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-              <input type="file" #photoInput accept="image/*" style="display: none;" (change)="onFileSelected($event, 'photo')">
-              <input type="file" #videoInput accept="video/*" style="display: none;" (change)="onFileSelected($event, 'video')">
-              <input type="file" #audioInput accept="audio/*" style="display: none;" (change)="onFileSelected($event, 'audio')">
 
-              <button type="button" (click)="photoInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">📷 Photo</button>
-              <button type="button" (click)="videoInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">🎥 Video</button>
-              <button type="button" (click)="audioInput.click()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer;">🎤 Audio</button>
-            </div>
+            <textarea [(ngModel)]="newContent" class="styled-input" rows="6" placeholder="Your content..."></textarea>
             
-            <div style="font-size: 12px; color: gray; margin-bottom: 15px;">
-              <div *ngIf="selectedPhoto">✔️ {{ selectedPhoto.name }}</div>
-              <div *ngIf="selectedVideo">✔️ {{ selectedVideo.name }}</div>
-              <div *ngIf="selectedAudio">✔️ {{ selectedAudio.name }}</div>
+            <div class="media-toolbar">
+              <label class="media-btn">
+                📷 Photo
+                <input type="file" hidden accept="image/*" (change)="onFileSelected($event, 'photo')">
+                <span *ngIf="selectedPhoto" style="color: #37c3bb;"> (1)</span>
+              </label>
+              <label class="media-btn">
+                🎥 Video
+                <input type="file" hidden accept="video/*" (change)="onFileSelected($event, 'video')">
+                <span *ngIf="selectedVideo" style="color: #37c3bb;"> (1)</span>
+              </label>
+              <label class="media-btn">
+                🎤 Voice
+                <input type="file" hidden accept="audio/*" (change)="onFileSelected($event, 'audio')">
+                <span *ngIf="selectedAudio" style="color: #37c3bb;"> (1)</span>
+              </label>
             </div>
 
             <div class="save-footer">
-               <button class="cancel-btn" (click)="toggleForm()">Cancel</button>
-               <button class="standard-blue-btn" (click)="saveNote()">{{ editingNoteId ? 'Update' : 'Save' }}</button>
+              <button class="cancel-btn" (click)="toggleForm()">Cancel</button>
+              <button class="standard-blue-btn" (click)="saveNote()">Save Note</button>
             </div>
           </div>
         }
       </div>
-    </main>
+    </div>
 
-    <aside class="right-sidebar">
-      <div class="panel-header" style="margin-bottom: 15px;">Your Notes</div>
-      
-      <div style="max-height: 70vh; overflow-y: auto; padding-right: 10px; display: flex; flex-direction: column; gap: 10px;">
-        @for (note of notesHistory; track note.id) {
-          
-          <details class="collapsible-note" style="flex-shrink: 0; margin: 0;">
-            <summary>
-              {{ note.title }} 
-              <small>
-                {{ note.creationDate | date:'shortDate' }} 
-                | {{ getEmoji(note.helpfulness) }} ({{ note.helpfulness }}/10)
-              </small>
-            </summary>
-            <div class="note-content">
-              <p>{{ note.content }}</p>
-              
-              <div *ngIf="note.photoUrl || note.videoUrl || note.audioUrl" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px; border-top: 1px solid #eee; padding-top: 15px;">
-                
-                <div *ngIf="note.photoUrl">
-                  <img [src]="note.photoUrl" (click)="openPhoto(note.photoUrl)" alt="Note photo" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Click to enlarge">
-                </div>
-
-                <div *ngIf="note.videoUrl">
-                  <video [src]="note.videoUrl" controls style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></video>
-                </div>
-
-                <div *ngIf="note.audioUrl">
-                  <audio [src]="note.audioUrl" controls style="width: 100%;"></audio>
-                </div>
+    <div class="right-sidebar">
+      <div class="panel-header">Your Notes</div>
+      <div *ngFor="let note of notesHistory" class="collapsible-note">
+        <details>
+          <summary>
+            <div style="display: flex; flex-direction: column;">
+              <span class="note-title">{{note.title}}</span>
+              <div class="note-meta">
+                {{note.creationDate | date:'shortDate'}} | 
+                <span style="color: #37c3bb; font-weight: 600;">{{getEmoji(note.helpfulness)}} ({{note.helpfulness || 0}}/10)</span>
               </div>
-
-              <button class="standard-blue-btn" (click)="editNote(note)" style="margin-top: 15px; padding: 5px 15px; font-size: 12px;">Edit Note</button>
-
             </div>
-          </details>
+          </summary>
+          <div style="padding: 0 20px 20px 20px; color: #4a5568; font-size: 0.95rem;">
+            <p style="margin-top: 0;">{{note.content}}</p>
+            
+            <img *ngIf="note.photoUrl" 
+                 [src]="'http://localhost:5000' + note.photoUrl" 
+                 class="note-thumbnail" 
+                 (click)="openPhoto('http://localhost:5000' + note.photoUrl)">
 
-        } @empty {
-          <p style="padding: 20px; color: #888;">No notes in the database.</p>
-        }
+            <div class="save-footer" style="margin-top: 15px;">
+              <button class="standard-blue-btn" (click)="editNote(note)">Edit</button>
+              <button class="delete-btn" (click)="deleteNote(note.id)">Delete</button>
+            </div>
+          </div>
+        </details>
       </div>
-    </aside>
+    </div>
   </div>
 </div>
 
-@if (enlargedPhoto) {
-  <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; cursor: zoom-out;" (click)="closePhoto()">
-    <img [src]="enlargedPhoto" style="max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
-    <div style="position: absolute; top: 20px; right: 40px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</div>
-  </div>
-}
+<div class="photo-modal" *ngIf="enlargedPhoto" (click)="closePhoto()">
+  <img [src]="enlargedPhoto" alt="Enlarged" (click)="$event.stopPropagation()">
+  <button class="close-modal-btn" (click)="closePhoto()">✕</button>
+</div>
