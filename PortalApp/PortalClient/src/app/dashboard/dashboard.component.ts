@@ -94,10 +94,12 @@ export class DashboardComponent implements OnInit {
     formData.append('Author', this.currentUserName); 
     formData.append('HelpfulnessRating', this.helpfulnessRating.toString());
     formData.append('CreationEaseRating', this.creationEaseRating.toString());
-    formData.append('AuthorId', this.currentLoggedInUserId.toString());
+    
+    
+    formData.append('author_id', this.currentLoggedInUserId.toString());
     
     if (this.groupId) {
-      formData.append('GroupId', this.groupId.toString());
+      formData.append('group_id', this.groupId.toString());
     }
 
     if (this.selectedPhoto) formData.append('Photo', this.selectedPhoto);
@@ -106,6 +108,7 @@ export class DashboardComponent implements OnInit {
 
     this.noteService.addNote(formData).subscribe({
       next: (savedNote) => {
+        
         this.loadNotes();
         this.toggleForm();
       },

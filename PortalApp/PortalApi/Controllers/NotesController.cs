@@ -185,11 +185,43 @@ namespace PortalApi.Controllers
                     cmd.Parameters.AddWithValue("@GroupId", (object?)newNote.GroupId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@AuthorId", (object?)newNote.AuthorId ?? DBNull.Value);
 
-                    newNote.Id = (int)await cmd.ExecuteScalarAsync();
+                    // Safe cast to avoid CS8605 warning
+                    var insertedId = await cmd.ExecuteScalarAsync();
+                    newNote.Id = Convert.ToInt32(insertedId);
                 }
             }
 
             return CreatedAtAction(nameof(GetNotes), new { id = newNote.Id }, newNote);
+        }
+
+        // --- Endpoint to delete a specific note by ID ---
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteNote(int id)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+                
+                // Query to delete the note matching the provided ID
+                string query = "DELETE FROM dbo.Notes WHERE Id = @Id";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Id", id);
+
+                    // ExecuteNonQueryAsync returns the number of affected rows
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                    // If no rows were affected, the note with this ID didn't exist
+                    if (rowsAffected == 0)
+                    {
+                        return NotFound(new { message = "Note not found" });
+                    }
+                }
+            }
+
+            // Return HTTP 204 No Content which is standard for successful DELETE operations
+            return NoContent();
         }
 
         private async Task<string?> SaveFileAsync(IFormFile? file, string folderName)
