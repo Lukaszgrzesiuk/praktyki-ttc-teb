@@ -69,6 +69,10 @@ export class DashboardComponent implements OnInit {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
+  // Navigate to Admin Panel
+  goToAdmin() {
+    this.router.navigate(['/admin']);
+  }
 
   toggleForm() {
     this.showForm = !this.showForm;

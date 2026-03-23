@@ -3,6 +3,9 @@
     <input type="text" class="search-input" placeholder="Search notes...">
     <div style="display: flex; align-items: center; gap: 15px;">
       <span style="font-weight: 600;">Witaj, <span style="color: #37c3bb;">{{currentUserName}}</span>!</span>
+      
+      <button class="standard-blue-btn" style="padding: 6px 15px; font-size: 0.9rem;" (click)="goToAdmin()">Admin Panel</button>
+      
       <button class="cancel-btn" style="padding: 6px 15px; font-size: 0.9rem;" (click)="logout()">Wyloguj</button>
     </div>
   </div>
