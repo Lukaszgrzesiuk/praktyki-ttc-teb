@@ -79,7 +79,10 @@ export class DashboardComponent implements OnInit {
       // Send message to the backend AI controller
       this.http.post<any>('http://localhost:5000/api/aichat/process', payload).subscribe({
         next: (res) => {
-          this.chatMessages.push({ sender: 'ai', text: res.message });
+          // Dynamic response in the chat
+          const aiReply = `Done! I created a note titled "${res.title}" and rated its importance as ${res.rating}/10.`;
+          this.chatMessages.push({ sender: 'ai', text: aiReply });
+          
           this.loadNotes(); // Reload notes to see the new one and sort by rank
           this.scrollToBottom();
         },

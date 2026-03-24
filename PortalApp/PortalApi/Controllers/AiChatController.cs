@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using System.Text;
 using System.Text.Json;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System;
 using Microsoft.Extensions.Configuration;
+using Google.GenAI;       // <-- New SDK import
+using Google.GenAI.Types; // <-- New SDK import
 
 namespace PortalApi.Controllers
 {
@@ -15,16 +15,19 @@ namespace PortalApi.Controllers
     {
         private readonly string _connectionString;
         
-        // API key defined directly in the controller since we cannot modify appsettings.json
+        // API key defined directly in the controller (Remember to revoke this key in AI Studio later!)
         private readonly string _geminiApiKey = "AIzaSyB3tQ5s2qHecJERJTjtQlVtRFvJx6XFHdc";
         
-        // Static HttpClient to avoid socket exhaustion since we cannot modify Program.cs
-        private static readonly HttpClient _httpClient = new HttpClient();
+        // Official Google GenAI Client
+        private readonly Client _aiClient;
 
         public AiChatController(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection") 
                                 ?? throw new InvalidOperationException("Missing ConnectionString.");
+            
+            // Initialize the official Gemini client
+            _aiClient = new Client(apiKey: _geminiApiKey);
         }
 
         [HttpPost("process")]
@@ -38,55 +41,52 @@ namespace PortalApi.Controllers
                 You are a note-taking assistant. Analyze the user's message: '{request.Message}'.
                 Your task is to create a concise note from it.
                 Rate its importance/priority (HelpfulnessRating) on a scale of 1-10 based on context (e.g., words like 'urgent', 'important' = 9-10, casual thoughts = 3-5).
-                Return the result ONLY as valid JSON in the following format (without ```json tags):
-                {{
-                    ""title"": ""Short note title"",
-                    ""content"": ""Clear note content"",
-                    ""helpfulnessRating"": 8
-                }}";
+                Return the result as JSON with exactly these keys: title, content, helpfulnessRating.";
 
-            var geminiPayload = new
-            {
-                contents = new[] { new { parts = new[] { new { text = prompt } } } },
-                generationConfig = new { temperature = 0.2 } // Low temperature for stable JSON output
+            // 2. Configure SDK
+            var config = new GenerateContentConfig 
+            { 
+                Temperature = 0.2f,
+                ResponseMimeType = "application/json" // Forces pure JSON output
             };
 
-            // 2. Call Gemini API
-            var content = new StringContent(JsonSerializer.Serialize(geminiPayload), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"[https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=){_geminiApiKey}", content);
-            
-            if (!response.IsSuccessStatusCode) 
-                return StatusCode(500, new { message = "Error communicating with Gemini API." });
+            // 3. Call Gemini API via SDK
+            string textResponse;
+            try 
+            {
+                var response = await _aiClient.Models.GenerateContentAsync(
+                    model: "gemini-2.5-flash",
+                    contents: prompt,
+                    config: config
+                );
+                
+                textResponse = response.Text;
+            }
+            catch (Exception ex)
+            {
+                // SDK throws an exception if something goes wrong (e.g., invalid API key)
+                return StatusCode(500, new { message = "Error communicating with Gemini API.", details = ex.Message });
+            }
 
-            var jsonString = await response.Content.ReadAsStringAsync();
-            using var document = JsonDocument.Parse(jsonString);
-            
-            // Extract text from Gemini response
-            var textResponse = document.RootElement
-                .GetProperty("candidates")[0]
-                .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text").GetString()?.Trim();
-
-            if (textResponse == null)
+            if (string.IsNullOrEmpty(textResponse))
                 return StatusCode(500, new { message = "Gemini returned an empty response." });
 
-            // Remove markdown code blocks if present
-            if (textResponse.StartsWith("```json")) textResponse = textResponse.Substring(7);
-            if (textResponse.EndsWith("```")) textResponse = textResponse.Substring(0, textResponse.Length - 3);
+            // Safe cleaning of potential markdown formatting garbage
+            textResponse = textResponse.Replace("```json", "", StringComparison.OrdinalIgnoreCase).Replace("```", "").Trim();
 
-            // 3. Parse JSON from Gemini
+            // 4. Parse JSON from Gemini (Case-insensitive)
             AiNoteDto? aiNote;
             try
             {
-                aiNote = JsonSerializer.Deserialize<AiNoteDto>(textResponse);
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                aiNote = JsonSerializer.Deserialize<AiNoteDto>(textResponse, options);
             }
             catch (JsonException)
             {
                 return StatusCode(500, new { message = "Failed to parse response from Gemini.", rawOutput = textResponse });
             }
 
-            // 4. Save to database with generated priority
+            // 5. Save to database
             int insertedId = 0;
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -98,30 +98,30 @@ namespace PortalApi.Controllers
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@Title", aiNote!.title);
-                    cmd.Parameters.AddWithValue("@Content", aiNote.content);
+                    cmd.Parameters.AddWithValue("@Title", string.IsNullOrEmpty(aiNote?.title) ? "New Note (AI)" : aiNote.title);
+                    cmd.Parameters.AddWithValue("@Content", string.IsNullOrEmpty(aiNote?.content) ? "" : aiNote.content);
                     cmd.Parameters.AddWithValue("@Author", string.IsNullOrEmpty(request.AuthorName) ? "AI Assistant" : request.AuthorName);
                     cmd.Parameters.AddWithValue("@CreationDate", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@HelpfulnessRating", aiNote.helpfulnessRating);
-                    cmd.Parameters.AddWithValue("@CreationEaseRating", (byte)10); // AI generated notes are easy to create
+                    cmd.Parameters.AddWithValue("@HelpfulnessRating", aiNote?.helpfulnessRating ?? 5);
+                    cmd.Parameters.AddWithValue("@CreationEaseRating", (byte)10); 
                     cmd.Parameters.AddWithValue("@AuthorId", request.AuthorId);
 
                     insertedId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
             }
 
-            // 5. Return response to Angular interface
+            // 6. Return response to Angular interface
             return Ok(new { 
                 message = "Note automatically generated and ranked by AI!", 
                 noteId = insertedId, 
-                title = aiNote.title, 
-                content = aiNote.content,
-                rating = aiNote.helpfulnessRating 
+                title = aiNote?.title, 
+                content = aiNote?.content,
+                rating = aiNote?.helpfulnessRating 
             });
         }
     }
 
-    // DTO Models for the controller
+    // DTO Models
     public class ChatMessageRequest
     {
         public string Message { get; set; } = string.Empty;
