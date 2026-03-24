@@ -107,7 +107,7 @@
                 <span class="note-title">{{note.title}}</span>
                 <div class="note-meta">
                   {{note.creationDate | date:'shortDate'}} | 
-                  <span style="color: #37c3bb; font-weight: 600;">Importance: {{getEmoji(note.helpfulnessRating)}} ({{note.helpfulnessRating || 1}}/10)</span>
+                  <span style="color: #37c3bb; font-weight: 600;">{{getEmoji(note.helpfulnessRating)}} ({{note.helpfulnessRating || 1}}/10)</span>
                 </div>
               </div>
             </summary>
