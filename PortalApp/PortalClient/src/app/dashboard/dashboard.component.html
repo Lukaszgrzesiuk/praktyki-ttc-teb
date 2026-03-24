@@ -2,20 +2,35 @@
   <div class="top-bar" style="justify-content: space-between;">
     <input type="text" class="search-input" placeholder="Search notes...">
     <div style="display: flex; align-items: center; gap: 15px;">
-      <span style="font-weight: 600;">Witaj, <span style="color: #37c3bb;">{{currentUserName}}</span>!</span>
+      <span style="font-weight: 600;">Welcome, <span style="color: #37c3bb;">{{currentUserName}}</span>!</span>
       
       <button class="standard-blue-btn" style="padding: 6px 15px; font-size: 0.9rem;" (click)="goToAdmin()">Admin Panel</button>
       
-      <button class="cancel-btn" style="padding: 6px 15px; font-size: 0.9rem;" (click)="logout()">Wyloguj</button>
+      <button class="cancel-btn" style="padding: 6px 15px; font-size: 0.9rem;" (click)="logout()">Logout</button>
     </div>
   </div>
 
   <div class="content-layout">
     
     <div class="left-sidebar">
-      <div class="panel-header">Menu</div>
-      <div class="placeholder-text">
-        Here will be your AI chat (we'll add it later)
+      <div class="panel-header">AI Chat Assistant</div>
+      
+      <div class="chat-container">
+        <div class="chat-messages" #chatScroll>
+          @for (msg of chatMessages; track $index) {
+            <div class="chat-message" [ngClass]="msg.sender">
+              {{ msg.text }}
+            </div>
+          }
+        </div>
+        <div class="chat-input-container">
+          <input 
+            type="text" 
+            [(ngModel)]="chatInput" 
+            placeholder="e.g. Save an urgent note: Buy milk" 
+            (keyup.enter)="sendMessage()">
+          <button (click)="sendMessage()">➤</button>
+        </div>
       </div>
     </div>
 
@@ -92,7 +107,7 @@
                 <span class="note-title">{{note.title}}</span>
                 <div class="note-meta">
                   {{note.creationDate | date:'shortDate'}} | 
-                  <span style="color: #37c3bb; font-weight: 600;">{{getEmoji(note.helpfulnessRating)}} ({{note.helpfulnessRating || 1}}/10)</span>
+                  <span style="color: #37c3bb; font-weight: 600;">Importance: {{getEmoji(note.helpfulnessRating)}} ({{note.helpfulnessRating || 1}}/10)</span>
                 </div>
               </div>
             </summary>
