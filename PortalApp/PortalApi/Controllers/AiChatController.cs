@@ -16,7 +16,7 @@ namespace PortalApi.Controllers
         private readonly string _connectionString;
         
         // API key defined directly in the controller (Remember to revoke this key in AI Studio later!)
-        private readonly string _geminiApiKey = "AIzaSyB3tQ5s2qHecJERJTjtQlVtRFvJx6XFHdc";
+        private readonly string _geminiApiKey = "";
         
         // Official Google GenAI Client
         private readonly Client _aiClient;
