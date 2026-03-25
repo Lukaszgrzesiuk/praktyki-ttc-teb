@@ -33,8 +33,11 @@
   </aside>
 
   <main class="user-details">
+    @if (errorMessage) {
+      <div class="error-alert" style="margin-bottom: 20px;">{{ errorMessage }}</div>
+    }
+
     @if (selectedUser) {
-      
       <header class="detail-header">
         <h2>Managing: {{ selectedUser.name }}</h2>
         <div class="header-actions">

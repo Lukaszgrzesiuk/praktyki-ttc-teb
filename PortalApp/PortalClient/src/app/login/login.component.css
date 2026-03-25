@@ -90,3 +90,17 @@ h2 {
   padding: 0;
   font-size: 14px;
 }
+/* --- CZERWONY KOMUNIKAT BŁĘDU --- */
+.error-alert {
+  background-color: #ff4c4c;
+  color: white;
+  border: 1px solid #cc0000;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(255, 76, 76, 0.2);
+  animation: fadeInSlideUp 0.3s ease forwards;
+}

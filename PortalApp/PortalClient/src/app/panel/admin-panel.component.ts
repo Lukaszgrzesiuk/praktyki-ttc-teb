@@ -16,8 +16,8 @@ export class AdminPanelComponent implements OnInit {
   selectedUser: any | null = null;
   searchQuery: string = '';
   newGroupName: string = '';
+  errorMessage: string | null = null;
 
-  
   newUser = {
     login: '',
     password: '',
@@ -33,13 +33,13 @@ export class AdminPanelComponent implements OnInit {
   }
 
   loadUsers() {
+    this.errorMessage = null;
     this.adminService.getUsers().subscribe({
       next: (data) => {
         this.users = data;
       },
       error: () => {
-        alert('Brak uprawnień lub błąd serwera.');
-        this.router.navigate(['/dashboard']);
+        this.errorMessage = 'Failed to execute: Unauthorized access or server error.';
       }
     });
   }
@@ -52,48 +52,52 @@ export class AdminPanelComponent implements OnInit {
   selectUser(user: any) {
     this.selectedUser = user;
     this.newGroupName = '';
-    
+    this.errorMessage = null;
     
     this.adminService.getUserNotes(user.id).subscribe({
       next: (notes) => {
         this.selectedUser.notes = notes;
       },
-      error: (err) => console.error("Nie udało się pobrać notatek", err)
+      error: (err) => {
+        this.errorMessage = 'Failed to execute: Could not fetch user notes.';
+      }
     });
   }
 
-  
   addUser() {
+    this.errorMessage = null;
     if (this.newUser.login.trim() && this.newUser.password.trim()) {
       this.adminService.addUser(this.newUser).subscribe({
         next: (res) => {
-          alert('Użytkownik dodany pomyślnie!');
-          this.loadUsers(); // Przeładowanie listy
-          // Czyszczenie formularza
+          this.loadUsers();
           this.newUser = { login: '', password: '', firstName: '', lastName: '', email: '' };
         },
         error: (err) => {
-          alert('Błąd podczas dodawania. Sprawdź czy login nie jest zajęty.');
+          this.errorMessage = 'Failed to execute: Username already taken or invalid data.';
         }
       });
     } else {
-      alert('Login i hasło są wymagane!');
+      this.errorMessage = 'Failed to execute: Login and password are required.';
     }
   }
 
   deleteUser() {
+    this.errorMessage = null;
     if (this.selectedUser && confirm(`Czy na pewno chcesz usunąć użytkownika ${this.selectedUser.name}?`)) {
       this.adminService.deleteUser(this.selectedUser.id).subscribe({
         next: () => {
           this.users = this.users.filter(u => u.id !== this.selectedUser.id);
           this.selectedUser = null;
         },
-        error: (err) => alert('Błąd podczas usuwania użytkownika.')
+        error: (err) => {
+          this.errorMessage = 'Failed to execute: Could not delete user.';
+        }
       });
     }
   }
 
   addGroup() {
+    this.errorMessage = null;
     if (this.selectedUser && this.newGroupName.trim()) {
       this.adminService.addGroup(this.selectedUser.id, this.newGroupName.trim()).subscribe({
         next: () => {
@@ -101,30 +105,37 @@ export class AdminPanelComponent implements OnInit {
           this.selectedUser.groups.push(this.newGroupName.trim());
           this.newGroupName = '';
         },
-        error: (err) => alert('Błąd podczas dodawania grupy.')
+        error: (err) => {
+          this.errorMessage = 'Failed to execute: Could not add group.';
+        }
       });
     }
   }
 
   removeGroup(group: string) {
+    this.errorMessage = null;
     if (this.selectedUser) {
       this.adminService.removeGroup(this.selectedUser.id, group).subscribe({
         next: () => {
           this.selectedUser.groups = this.selectedUser.groups.filter((g: string) => g !== group);
         },
-        error: (err) => alert('Błąd podczas usuwania grupy.')
+        error: (err) => {
+          this.errorMessage = 'Failed to execute: Could not remove group.';
+        }
       });
     }
   }
 
-  
   removeNote(noteId: number) {
+    this.errorMessage = null;
     if (this.selectedUser && confirm('Na pewno chcesz usunąć tę notatkę?')) {
       this.adminService.deleteNoteAdmin(noteId).subscribe({
         next: () => {
           this.selectedUser.notes = this.selectedUser.notes.filter((n: any) => n.id !== noteId);
         },
-        error: (err) => alert('Błąd podczas usuwania notatki.')
+        error: (err) => {
+          this.errorMessage = 'Failed to execute: Could not delete note.';
+        }
       });
     }
   }

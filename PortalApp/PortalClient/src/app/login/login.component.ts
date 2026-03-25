@@ -16,6 +16,7 @@ export class LoginComponent {
   private authService = inject(AuthService); 
 
   showRegistration = false;
+  errorMessage: string | null = null;
 
   loginForm = new FormGroup({
     login: new FormControl(''),
@@ -24,9 +25,20 @@ export class LoginComponent {
 
   toggleView() {
     this.showRegistration = !this.showRegistration;
+    this.errorMessage = null;
   }
 
   onLogin() {
+    this.errorMessage = null;
+
+    const loginValue = this.loginForm.value.login;
+    const passwordValue = this.loginForm.value.password;
+
+    if (!loginValue || !passwordValue) {
+      this.errorMessage = 'Failed to execute: Please fill in all required fields.';
+      return;
+    }
+
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
@@ -35,7 +47,7 @@ export class LoginComponent {
         },
         error: (err) => {
           console.error('Login failed! Invalid credentials or server error:', err);
-          alert('Login failed. Please check your credentials.');
+          this.errorMessage = 'Failed to execute: Incorrect password or account does not exist.';
         }
       });
     }

@@ -13,6 +13,7 @@ export class RegisterComponent {
   @Output() switchToLogin = new EventEmitter<void>();
 
   private authService = inject(AuthService);
+  errorMessage: string | null = null;
 
   registerForm = new FormGroup({
     firstName: new FormControl(''),
@@ -24,6 +25,20 @@ export class RegisterComponent {
   });
 
   onRegisterSubmit() {
+    this.errorMessage = null;
+
+    const { firstName, lastName, login, email, password, retypePassword } = this.registerForm.value;
+
+    if (!firstName || !lastName || !login || !email || !password || !retypePassword) {
+      this.errorMessage = 'Failed to execute: All fields are required.';
+      return;
+    }
+
+    if (password !== retypePassword) {
+      this.errorMessage = 'Failed to execute: Passwords do not match.';
+      return;
+    }
+
     if (this.registerForm.valid) {
       this.authService.register(this.registerForm.value).subscribe({
         next: (response) => {
@@ -32,7 +47,7 @@ export class RegisterComponent {
         },
         error: (err) => {
           console.error('Registration failed! Server error:', err);
-          alert('Registration failed. Please try again.');
+          this.errorMessage = 'Failed to execute: Username already taken or server error.';
         }
       });
     }

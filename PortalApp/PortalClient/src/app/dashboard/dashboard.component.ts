@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { NoteService, Note } from '../services/note.service';
 import { AuthService } from '../services/auth.service';
-import { AdminService } from '../services/admin.service'; // Import AdminService
+import { AdminService } from '../services/admin.service'; 
 
 @Component({
   selector: 'app-dashboard',
@@ -40,6 +40,7 @@ export class DashboardComponent implements OnInit {
   editingNoteId: number | null = null;
   showForm: boolean = false;
   enlargedPhoto: string | null = null;
+  errorMessage: string | null = null;
 
   constructor(
     private noteService: NoteService,
@@ -56,7 +57,6 @@ export class DashboardComponent implements OnInit {
     if (this.currentLoggedInUserId) {
       this.loadNotes();
       
-      
       this.adminService.checkIfAdmin(this.currentLoggedInUserId).subscribe({
         next: (res) => this.isAdmin = res.isAdmin,
         error: (err) => console.error(err)
@@ -65,6 +65,7 @@ export class DashboardComponent implements OnInit {
   }
 
   sendMessage() {
+    this.errorMessage = null;
     if (!this.chatInput.trim()) return;
 
     const userText = this.chatInput;
@@ -88,6 +89,7 @@ export class DashboardComponent implements OnInit {
         },
         error: (err) => {
           this.chatMessages.push({ sender: 'ai', text: 'An error occurred while connecting to AI.' });
+          this.errorMessage = 'Failed to execute: Could not connect to AI service.';
           console.error(err);
           this.scrollToBottom();
         }
@@ -110,7 +112,10 @@ export class DashboardComponent implements OnInit {
       next: (data) => { 
         this.notesHistory = data.sort((a, b) => (b.helpfulnessRating ?? 0) - (a.helpfulnessRating ?? 0)); 
       },
-      error: (err) => console.error('Fetch error:', err)
+      error: (err) => {
+        console.error('Fetch error:', err);
+        this.errorMessage = 'Failed to execute: Could not load notes.';
+      }
     });
   }
 
@@ -125,6 +130,7 @@ export class DashboardComponent implements OnInit {
 
   toggleForm() {
     this.showForm = !this.showForm;
+    this.errorMessage = null;
     if (!this.showForm) this.resetForm();
   }
 
@@ -138,7 +144,14 @@ export class DashboardComponent implements OnInit {
   }
 
   saveNote() {
+    this.errorMessage = null;
     if (!this.currentLoggedInUserId) return;
+
+    if (!this.newTitle.trim() || !this.newContent.trim()) {
+      this.errorMessage = 'Failed to execute: Please provide both title and content.';
+      return;
+    }
+
     const formData = new FormData();
     formData.append('Title', this.newTitle);
     formData.append('Content', this.newContent);
@@ -158,12 +171,15 @@ export class DashboardComponent implements OnInit {
         this.loadNotes();
         this.toggleForm();
       },
-      error: (err) => alert('Error saving to backend!')
+      error: (err) => {
+        this.errorMessage = 'Failed to execute: Error saving to backend!';
+      }
     });
   }
 
   editNote(note: Note) {
     this.showForm = true;
+    this.errorMessage = null;
     this.editingNoteId = note.id ?? null;
     this.newTitle = note.title;
     this.newContent = note.content ?? '';
@@ -173,9 +189,13 @@ export class DashboardComponent implements OnInit {
   }
 
   deleteNote(id: number | undefined) {
+    this.errorMessage = null;
     if (id && confirm('Delete this note?')) {
       this.noteService.deleteNote(id).subscribe({
-        next: () => { this.notesHistory = this.notesHistory.filter(n => n.id !== id); }
+        next: () => { this.notesHistory = this.notesHistory.filter(n => n.id !== id); },
+        error: (err) => {
+          this.errorMessage = 'Failed to execute: Could not delete the note.';
+        }
       });
     }
   }

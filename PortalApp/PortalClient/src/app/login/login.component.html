@@ -6,6 +6,10 @@
     <div class="form-container">
       <h2>Log in</h2>
 
+      @if (errorMessage) {
+        <div class="error-alert">{{ errorMessage }}</div>
+      }
+
       <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
         <div class="form-group">
           <label>Login:</label>

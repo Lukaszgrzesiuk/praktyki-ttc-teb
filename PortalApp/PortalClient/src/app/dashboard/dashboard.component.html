@@ -39,11 +39,15 @@
     <div class="center-content">
       <div class="center-wrapper">
         
-        @if (!showForm) {
+      @if (!showForm) {
           <button class="huge-add-btn" (click)="toggleForm()">+ NEW NOTE</button>
         } @else {
           <div class="note-form-area">
             <h2>{{ editingNoteId ? 'Edit Note' : 'New Note' }}</h2>
+            
+            @if (errorMessage) {
+              <div class="error-alert">{{ errorMessage }}</div>
+            }
             
             <input [(ngModel)]="newTitle" class="styled-input" placeholder="Note Title">
             
