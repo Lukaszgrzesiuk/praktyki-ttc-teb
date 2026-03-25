@@ -21,14 +21,14 @@
 
     <div class="add-user-section">
       <h3>Add New User</h3>
-      <input type="text" [(ngModel)]="newUser.login" placeholder="Login (wymagany)*">
-      <input type="password" [(ngModel)]="newUser.password" placeholder="Hasło (wymagane)*">
-      <input type="text" [(ngModel)]="newUser.firstName" placeholder="Imię (opcjonalne)">
-      <input type="text" [(ngModel)]="newUser.lastName" placeholder="Nazwisko (opcjonalne)">
-      <input type="text" [(ngModel)]="newUser.email" placeholder="Email (opcjonalny)">
+      <input type="text" [(ngModel)]="newUser.login" placeholder="Login (required)*">
+      <input type="password" [(ngModel)]="newUser.password" placeholder="Hasło (required)*">
+      <input type="text" [(ngModel)]="newUser.firstName" placeholder="first name (optional)">
+      <input type="text" [(ngModel)]="newUser.lastName" placeholder="last name (optional)">
+      <input type="text" [(ngModel)]="newUser.email" placeholder="e-mail (optional)">
       <button class="btn-primary" (click)="addUser()">Add User</button>
       
-      <button class="btn-secondary" style="margin-top: 15px;" (click)="goBack()">Powrót do Dashboardu</button>
+      <button class="btn-secondary" style="margin-top: 15px;" (click)="goBack()">Back to Dashboard </button>
     </div>
   </aside>
 
