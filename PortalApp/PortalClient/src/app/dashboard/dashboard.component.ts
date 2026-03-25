@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { NoteService, Note } from '../services/note.service';
 import { AuthService } from '../services/auth.service';
+import { AdminService } from '../services/admin.service'; // Import AdminService
 
 @Component({
   selector: 'app-dashboard',
@@ -17,25 +18,21 @@ export class DashboardComponent implements OnInit {
   @ViewChild('chatScroll') private chatScrollContainer!: ElementRef;
 
   notesHistory: Note[] = [];
-  
-  // AI Chat variables
   chatMessages: {sender: 'user' | 'ai', text: string}[] = [
     { sender: 'ai', text: 'Hi! I am your AI assistant. Tell me what you want to note down (e.g., "Save an urgent note: buy milk"), and I will organize and rank it.' }
   ];
   chatInput: string = '';
 
-  // Form variables
   newTitle: string = '';
   newContent: string = '';
   helpfulnessRating: number = 1;
   creationEaseRating: number = 1;
   groupId: number | null = null;
   
-  // Variables from session
   currentLoggedInUserId: number | null = null; 
   currentUserName: string = '';
+  isAdmin: boolean = false; 
 
-  // File variables
   selectedPhoto: File | null = null;
   selectedVideo: File | null = null;
   selectedAudio: File | null = null;
@@ -47,6 +44,7 @@ export class DashboardComponent implements OnInit {
   constructor(
     private noteService: NoteService,
     private authService: AuthService,
+    private adminService: AdminService, 
     private router: Router,
     private http: HttpClient
   ) {}
@@ -57,10 +55,15 @@ export class DashboardComponent implements OnInit {
 
     if (this.currentLoggedInUserId) {
       this.loadNotes();
+      
+      
+      this.adminService.checkIfAdmin(this.currentLoggedInUserId).subscribe({
+        next: (res) => this.isAdmin = res.isAdmin,
+        error: (err) => console.error(err)
+      });
     }
   }
 
-  // --- AI CHAT BOT LOGIC ---
   sendMessage() {
     if (!this.chatInput.trim()) return;
 
@@ -76,14 +79,11 @@ export class DashboardComponent implements OnInit {
         AuthorName: this.currentUserName
       };
 
-      // Send message to the backend AI controller
       this.http.post<any>('http://localhost:5000/api/aichat/process', payload).subscribe({
         next: (res) => {
-          // Dynamic response in the chat
           const aiReply = `Done! I created a note titled "${res.title}" and rated its importance as ${res.rating}/10.`;
           this.chatMessages.push({ sender: 'ai', text: aiReply });
-          
-          this.loadNotes(); // Reload notes to see the new one and sort by rank
+          this.loadNotes();
           this.scrollToBottom();
         },
         error: (err) => {
@@ -103,13 +103,11 @@ export class DashboardComponent implements OnInit {
     }, 100);
   }
 
-  // --- DATA HANDLING ---
   loadNotes() {
     if (!this.currentLoggedInUserId) return;
     
     this.noteService.getNotesForUser(this.currentLoggedInUserId).subscribe({
       next: (data) => { 
-        // Automatically rank notes based on importance (HelpfulnessRating)
         this.notesHistory = data.sort((a, b) => (b.helpfulnessRating ?? 0) - (a.helpfulnessRating ?? 0)); 
       },
       error: (err) => console.error('Fetch error:', err)
@@ -120,13 +118,16 @@ export class DashboardComponent implements OnInit {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
+  
   goToAdmin() {
     this.router.navigate(['/admin']);
   }
+
   toggleForm() {
     this.showForm = !this.showForm;
     if (!this.showForm) this.resetForm();
   }
+
   onFileSelected(event: any, type: string) {
     const file = event.target.files[0];
     if (file) {
@@ -135,6 +136,7 @@ export class DashboardComponent implements OnInit {
       if (type === 'audio') this.selectedAudio = file;
     }
   }
+
   saveNote() {
     if (!this.currentLoggedInUserId) return;
     const formData = new FormData();
@@ -159,6 +161,7 @@ export class DashboardComponent implements OnInit {
       error: (err) => alert('Error saving to backend!')
     });
   }
+
   editNote(note: Note) {
     this.showForm = true;
     this.editingNoteId = note.id ?? null;
@@ -168,6 +171,7 @@ export class DashboardComponent implements OnInit {
     this.creationEaseRating = note.creationEaseRating ?? 1;
     this.groupId = note.groupId ?? null;
   }
+
   deleteNote(id: number | undefined) {
     if (id && confirm('Delete this note?')) {
       this.noteService.deleteNote(id).subscribe({
@@ -175,6 +179,7 @@ export class DashboardComponent implements OnInit {
       });
     }
   }
+
   getEmoji(value: number | undefined): string {
     const val = value ?? 1;
     if (val <= 2) return '😢';
@@ -183,8 +188,10 @@ export class DashboardComponent implements OnInit {
     if (val <= 8) return '😊';
     return '🤩';
   }
+
   openPhoto(url: string) { this.enlargedPhoto = url; }
   closePhoto() { this.enlargedPhoto = null; }
+
   resetForm() {
     this.newTitle = '';
     this.newContent = '';

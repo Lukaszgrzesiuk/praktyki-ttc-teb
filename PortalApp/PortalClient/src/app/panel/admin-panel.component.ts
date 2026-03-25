@@ -1,142 +1,135 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface ActivityLog {
-  action: string;
-  timestamp: Date;
-  isSuspicious: boolean;
-}
-
-interface User {
-  id: number;
-  name: string;
-  groups: string[];
-  notes: string[];
-  logs: ActivityLog[];
-}
+import { AdminService } from '../services/admin.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-panel',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-panel.component.html',
-  styleUrls: ['./admin-panel.component.css'] // FIX: styleUrls instead of styleUrl
+  styleUrls: ['./admin-panel.component.css']
 })
-export class AdminPanelComponent {
-  users: User[] = [];
-  selectedUser: User | null = null;
-  userIdCounter: number = 1; // FIX: explicitly declare type
-
-  // FIX: Initialize all string properties to avoid TypeScript strict mode errors
+export class AdminPanelComponent implements OnInit {
+  users: any[] = [];
+  selectedUser: any | null = null;
   searchQuery: string = '';
-  newUserName: string = '';
-  newUserPassword: string = '';
   newGroupName: string = '';
-  newNoteTitle: string = '';
 
-  // Dynamic list filtering users by input text
+  
+  newUser = {
+    login: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    email: ''
+  };
+
+  constructor(private adminService: AdminService, private router: Router) {}
+
+  ngOnInit() {
+    this.loadUsers();
+  }
+
+  loadUsers() {
+    this.adminService.getUsers().subscribe({
+      next: (data) => {
+        this.users = data;
+      },
+      error: () => {
+        alert('Brak uprawnień lub błąd serwera.');
+        this.router.navigate(['/dashboard']);
+      }
+    });
+  }
+
   get filteredUsers() {
     if (!this.searchQuery) return this.users;
     return this.users.filter(u => u.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
   }
 
-  // --- USER MANAGEMENT ---
-  selectUser(user: User) {
+  selectUser(user: any) {
     this.selectedUser = user;
     this.newGroupName = '';
-    this.newNoteTitle = '';
+    
+    
+    this.adminService.getUserNotes(user.id).subscribe({
+      next: (notes) => {
+        this.selectedUser.notes = notes;
+      },
+      error: (err) => console.error("Nie udało się pobrać notatek", err)
+    });
   }
 
-  // Adding a user requires username and password
+  
   addUser() {
-    if (this.newUserName.trim() && this.newUserPassword.trim()) {
-      const newUser: User = {
-        id: this.userIdCounter++,
-        name: this.newUserName.trim(),
-        groups: [],
-        notes: [],
-        logs: [{ action: 'Account created', timestamp: new Date(), isSuspicious: false }]
-      };
-      
-      this.users.push(newUser);
-      
-      // Clear fields after adding
-      this.newUserName = '';
-      this.newUserPassword = '';
-      
-      if (!this.selectedUser) {
-        this.selectUser(newUser);
-      }
+    if (this.newUser.login.trim() && this.newUser.password.trim()) {
+      this.adminService.addUser(this.newUser).subscribe({
+        next: (res) => {
+          alert('Użytkownik dodany pomyślnie!');
+          this.loadUsers(); // Przeładowanie listy
+          // Czyszczenie formularza
+          this.newUser = { login: '', password: '', firstName: '', lastName: '', email: '' };
+        },
+        error: (err) => {
+          alert('Błąd podczas dodawania. Sprawdź czy login nie jest zajęty.');
+        }
+      });
     } else {
-      alert('Please provide both username and password!');
+      alert('Login i hasło są wymagane!');
     }
   }
 
   deleteUser() {
-    if (this.selectedUser) {
-      this.users = this.users.filter(u => u.id !== this.selectedUser!.id);
-      this.selectedUser = null;
+    if (this.selectedUser && confirm(`Czy na pewno chcesz usunąć użytkownika ${this.selectedUser.name}?`)) {
+      this.adminService.deleteUser(this.selectedUser.id).subscribe({
+        next: () => {
+          this.users = this.users.filter(u => u.id !== this.selectedUser.id);
+          this.selectedUser = null;
+        },
+        error: (err) => alert('Błąd podczas usuwania użytkownika.')
+      });
     }
   }
 
-  // --- GROUP MANAGEMENT ---
   addGroup() {
     if (this.selectedUser && this.newGroupName.trim()) {
-      this.selectedUser.groups.push(this.newGroupName.trim());
-      this.logActivity(`Added to group: ${this.newGroupName.trim()}`, false);
-      this.newGroupName = '';
+      this.adminService.addGroup(this.selectedUser.id, this.newGroupName.trim()).subscribe({
+        next: () => {
+          if (!this.selectedUser.groups) this.selectedUser.groups = [];
+          this.selectedUser.groups.push(this.newGroupName.trim());
+          this.newGroupName = '';
+        },
+        error: (err) => alert('Błąd podczas dodawania grupy.')
+      });
     }
   }
 
   removeGroup(group: string) {
     if (this.selectedUser) {
-      this.selectedUser.groups = this.selectedUser.groups.filter(g => g !== group);
-      this.logActivity(`Removed from group: ${group}`, false);
-    }
-  }
-
-  // --- NOTE MANAGEMENT ---
-  addNote() {
-    if (this.selectedUser && this.newNoteTitle.trim()) {
-      this.selectedUser.notes.push(this.newNoteTitle.trim());
-      this.logActivity(`Created note: ${this.newNoteTitle.trim()}`, false);
-      this.newNoteTitle = '';
-    }
-  }
-
-  removeNote(note: string) {
-    if (this.selectedUser) {
-      this.selectedUser.notes = this.selectedUser.notes.filter(n => n !== note);
-      this.logActivity(`Deleted note: ${note}`, false);
-    }
-  }
-
-  // --- MONITORING & ALERTS ---
-  private logActivity(actionMessage: string, isSuspicious: boolean) {
-    if (this.selectedUser) {
-      this.selectedUser.logs.unshift({
-        action: actionMessage,
-        timestamp: new Date(),
-        isSuspicious: isSuspicious
+      this.adminService.removeGroup(this.selectedUser.id, group).subscribe({
+        next: () => {
+          this.selectedUser.groups = this.selectedUser.groups.filter((g: string) => g !== group);
+        },
+        error: (err) => alert('Błąd podczas usuwania grupy.')
       });
     }
   }
 
-  simulateMisuse() {
-    if (this.selectedUser) {
-      this.logActivity('MISUSE DETECTED: Note shared outside allowed group', true);
+  
+  removeNote(noteId: number) {
+    if (this.selectedUser && confirm('Na pewno chcesz usunąć tę notatkę?')) {
+      this.adminService.deleteNoteAdmin(noteId).subscribe({
+        next: () => {
+          this.selectedUser.notes = this.selectedUser.notes.filter((n: any) => n.id !== noteId);
+        },
+        error: (err) => alert('Błąd podczas usuwania notatki.')
+      });
     }
   }
-
-  sendAlert() {
-    if (this.selectedUser) {
-      const hasMisuse = this.selectedUser.logs.some(log => log.isSuspicious);
-      if (hasMisuse) {
-        alert(`WARNING SENT TO ${this.selectedUser.name}:\nWe detected unauthorized use of your notes. Please follow the platform guidelines.`);
-      } else {
-        alert(`Message sent to ${this.selectedUser.name}:\nPlease remember to keep your notes organized.`);
-      }
-    }
+  
+  goBack() {
+    this.router.navigate(['/dashboard']);
   }
 }

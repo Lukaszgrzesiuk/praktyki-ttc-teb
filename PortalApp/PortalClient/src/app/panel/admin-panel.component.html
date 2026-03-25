@@ -12,7 +12,7 @@
     <ul class="user-list">
       @for (user of filteredUsers; track user.id) {
         <li (click)="selectUser(user)" [class.active]="selectedUser?.id === user.id">
-          {{ user.name }}
+          {{ user.name }} ({{ user.login }})
         </li>
       } @empty {
         <li class="empty-msg">No users found.</li>
@@ -21,9 +21,14 @@
 
     <div class="add-user-section">
       <h3>Add New User</h3>
-      <input type="text" [(ngModel)]="newUserName" placeholder="Username...">
-      <input type="password" [(ngModel)]="newUserPassword" placeholder="Password...">
+      <input type="text" [(ngModel)]="newUser.login" placeholder="Login (wymagany)*">
+      <input type="password" [(ngModel)]="newUser.password" placeholder="Hasło (wymagane)*">
+      <input type="text" [(ngModel)]="newUser.firstName" placeholder="Imię (opcjonalne)">
+      <input type="text" [(ngModel)]="newUser.lastName" placeholder="Nazwisko (opcjonalne)">
+      <input type="text" [(ngModel)]="newUser.email" placeholder="Email (opcjonalny)">
       <button class="btn-primary" (click)="addUser()">Add User</button>
+      
+      <button class="btn-secondary" style="margin-top: 15px;" (click)="goBack()">Powrót do Dashboardu</button>
     </div>
   </aside>
 
@@ -34,7 +39,6 @@
         <h2>Managing: {{ selectedUser.name }}</h2>
         <div class="header-actions">
           <button class="btn-danger" (click)="deleteUser()">Delete User</button>
-          <button class="btn-warning" (click)="sendAlert()">Send Alert</button>
         </div>
       </header>
 
@@ -42,8 +46,8 @@
         
         <section class="admin-card">
           <h3>Groups</h3>
-          <div class="add-box">
-            <input type="text" [(ngModel)]="newGroupName" placeholder="Group name...">
+          <div class="add-box" style="margin-bottom: 15px; display: flex; gap: 10px;">
+            <input type="text" [(ngModel)]="newGroupName" placeholder="Group name..." style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1;">
             <button class="btn-secondary" (click)="addGroup()">Add</button>
           </div>
           <ul>
@@ -60,35 +64,14 @@
 
         <section class="admin-card">
           <h3>Notes</h3>
-          <div class="add-box">
-            <input type="text" [(ngModel)]="newNoteTitle" placeholder="Note title...">
-            <button class="btn-secondary" (click)="addNote()">Add</button>
-          </div>
           <ul>
-            @for (note of selectedUser.notes; track note) {
+            @for (note of selectedUser.notes; track note.id) {
               <li>
-                <span>{{ note }}</span>
-                <button class="btn-icon" (click)="removeNote(note)">❌</button>
+                <span>{{ note.title }}</span>
+                <button class="btn-icon" (click)="removeNote(note.id)">❌</button>
               </li>
             } @empty {
-              <li class="empty-msg">No notes created.</li>
-            }
-          </ul>
-        </section>
-
-        <section class="admin-card logs-card">
-          <div class="card-header-flex">
-            <h3>Activity Logs</h3>
-            <button class="btn-outline-danger" (click)="simulateMisuse()">Simulate Misuse</button>
-          </div>
-          <ul class="log-list">
-            @for (log of selectedUser.logs; track log.timestamp) {
-              <li [class.suspicious]="log.isSuspicious">
-                <span class="log-time">{{ log.timestamp | date:'shortTime' }}</span>
-                <span class="log-action">{{ log.action }}</span>
-              </li>
-            } @empty {
-              <li class="empty-msg">No activity recorded.</li>
+              <li class="empty-msg">No notes created by this user.</li>
             }
           </ul>
         </section>
@@ -96,7 +79,7 @@
       </div>
     } @else {
       <div class="no-selection">
-        <h3>Select or add a user to manage their data.</h3>
+        <h3>Select a user from the left to manage their data.</h3>
       </div>
     }
   </main>

@@ -4,7 +4,9 @@
     <div style="display: flex; align-items: center; gap: 15px;">
       <span style="font-weight: 600;">Welcome, <span style="color: #37c3bb;">{{currentUserName}}</span>!</span>
       
-      <button class="standard-blue-btn" style="padding: 6px 15px; font-size: 0.9rem;" (click)="goToAdmin()">Admin Panel</button>
+      @if (isAdmin) {
+        <button class="standard-blue-btn" style="padding: 6px 15px; font-size: 0.9rem;" (click)="goToAdmin()">Admin Panel</button>
+      }
       
       <button class="cancel-btn" style="padding: 6px 15px; font-size: 0.9rem;" (click)="logout()">Logout</button>
     </div>
@@ -127,14 +129,12 @@
                 @if (note.videoUrl) {
                   <video controls style="max-width: 100%; border-radius: 8px;">
                     <source [src]="'http://localhost:5000' + note.videoUrl" type="video/mp4">
-                    Your browser does not support the video tag.
                   </video>
                 }
 
                 @if (note.audioUrl) {
                   <audio controls style="width: 100%;">
                     <source [src]="'http://localhost:5000' + note.audioUrl" type="audio/mpeg">
-                    Your browser does not support the audio element.
                   </audio>
                 }
                 
