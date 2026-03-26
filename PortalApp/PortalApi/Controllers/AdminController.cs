@@ -110,7 +110,6 @@ namespace PortalApi.Controllers
             return NoContent();
         }
 
-        // Fetching notes for a specific user (with details for preview)
         [HttpGet("users/{userId}/notes")]
         public async Task<IActionResult> GetUserNotes(int userId, [FromQuery] int requesterId)
         {
@@ -120,7 +119,6 @@ namespace PortalApi.Controllers
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
-                // Fetching extra data to display in the note preview modal
                 string query = @"
                     SELECT Id, Title, Content, CreationDate, HelpfulnessRating, 
                            CreationEaseRating, PhotoUrl, VideoUrl, AudioUrl 

@@ -18,7 +18,6 @@ namespace PortalApi.Controllers
             _env = env;
         }
 
-        // --- Smart endpoint handling Admin group & regular Group sharing ---
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<IEnumerable<Note>>> GetNotesForUser(int userId)
         {
@@ -99,7 +98,6 @@ namespace PortalApi.Controllers
             return Ok(notes);
         }
 
-        // --- Standard Get endpoint as a fallback ---
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Note>>> GetNotes()
         {
@@ -137,7 +135,6 @@ namespace PortalApi.Controllers
             return Ok(notes);
         }
 
-        // --- AddNote inserts all new fields into SQL ---
         [HttpPost]
         public async Task<ActionResult<Note>> AddNote([FromForm] NoteCreateDto note)
         {
@@ -185,7 +182,6 @@ namespace PortalApi.Controllers
                     cmd.Parameters.AddWithValue("@GroupId", (object?)newNote.GroupId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@AuthorId", (object?)newNote.AuthorId ?? DBNull.Value);
 
-                    // Safe cast to avoid CS8605 warning
                     var insertedId = await cmd.ExecuteScalarAsync();
                     newNote.Id = Convert.ToInt32(insertedId);
                 }
@@ -194,7 +190,6 @@ namespace PortalApi.Controllers
             return CreatedAtAction(nameof(GetNotes), new { id = newNote.Id }, newNote);
         }
 
-        // --- Endpoint to delete a specific note by ID ---
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteNote(int id)
         {
@@ -202,17 +197,14 @@ namespace PortalApi.Controllers
             {
                 await conn.OpenAsync();
                 
-                // Query to delete the note matching the provided ID
                 string query = "DELETE FROM dbo.Notes WHERE Id = @Id";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Id", id);
 
-                    // ExecuteNonQueryAsync returns the number of affected rows
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
 
-                    // If no rows were affected, the note with this ID didn't exist
                     if (rowsAffected == 0)
                     {
                         return NotFound(new { message = "Note not found" });
@@ -220,7 +212,6 @@ namespace PortalApi.Controllers
                 }
             }
 
-            // Return HTTP 204 No Content which is standard for successful DELETE operations
             return NoContent();
         }
 
