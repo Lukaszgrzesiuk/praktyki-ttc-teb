@@ -1,39 +1,42 @@
 <div class="admin-dashboard">
   
   <aside class="user-sidebar">
-    <div class="sidebar-header" (click)="isUserListExpanded = !isUserListExpanded" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+    <div class="sidebar-header">
       <h2>User List</h2>
-      <span [style.transform]="isUserListExpanded ? 'rotate(180deg)' : 'rotate(0deg)'" style="display: inline-block; transition: transform 0.3s; font-size: 0.9rem;">▼</span>
     </div>
     
-    @if (isUserListExpanded) {
-      <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-        <div class="search-box">
-          <input type="text" [(ngModel)]="searchQuery" placeholder="Search user...">
-        </div>
+    <div class="search-box">
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Search user...">
+    </div>
 
-        <ul class="user-list">
-          @for (user of filteredUsers; track user.id) {
-            <li (click)="selectUser(user)" [class.active]="selectedUser?.id === user.id">
-              {{ user.name }} ({{ user.login }})
-            </li>
-          } @empty {
-            <li class="empty-msg">No users found.</li>
-          }
-        </ul>
-      </div>
-    }
+    <ul class="user-list">
+      @for (user of filteredUsers; track user.id) {
+        <li (click)="selectUser(user)" [class.active]="selectedUser?.id === user.id">
+          {{ user.name }} ({{ user.login }})
+        </li>
+      } @empty {
+        <li class="empty-msg">No users found.</li>
+      }
+    </ul>
 
     <div class="add-user-section" style="margin-top: auto;">
-      <h3>Add New User</h3>
-      <input type="text" [(ngModel)]="newUser.login" placeholder="Login (Required)*">
-      <input type="password" [(ngModel)]="newUser.password" placeholder="Password (Required)*">
-      <input type="text" [(ngModel)]="newUser.firstName" placeholder="First Name (Optional)">
-      <input type="text" [(ngModel)]="newUser.lastName" placeholder="Last Name (Optional)">
-      <input type="text" [(ngModel)]="newUser.email" placeholder="Email (Optional)">
-      <button class="btn-primary" (click)="addUser()">Add User</button>
+      <h3 (click)="isAddUserExpanded = !isAddUserExpanded" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+        Add New User
+        <span [style.transform]="isAddUserExpanded ? 'rotate(180deg)' : 'rotate(0deg)'" style="display: inline-block; transition: transform 0.3s; font-size: 0.9rem;">▼</span>
+      </h3>
       
-      <button class="btn-secondary" style="margin-top: 15px;" (click)="goBack()">Back to Dashboard</button>
+      @if (isAddUserExpanded) {
+        <div style="margin-top: 15px;">
+          <input type="text" [(ngModel)]="newUser.login" placeholder="Login (Required)*">
+          <input type="password" [(ngModel)]="newUser.password" placeholder="Password (Required)*">
+          <input type="text" [(ngModel)]="newUser.firstName" placeholder="First Name (Optional)">
+          <input type="text" [(ngModel)]="newUser.lastName" placeholder="Last Name (Optional)">
+          <input type="text" [(ngModel)]="newUser.email" placeholder="Email (Optional)">
+          <button class="btn-primary" (click)="addUser()">Add User</button>
+        </div>
+      }
+      
+      <button class="btn-secondary" style="margin-top: 15px; width: 100%;" (click)="goBack()">Back to Dashboard</button>
     </div>
   </aside>
 

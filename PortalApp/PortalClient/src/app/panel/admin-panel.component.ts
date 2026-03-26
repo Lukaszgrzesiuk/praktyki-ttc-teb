@@ -16,7 +16,7 @@ export class AdminPanelComponent implements OnInit {
   selectedUser: any | null = null;
   searchQuery: string = '';
   newGroupName: string = '';
-  isUserListExpanded: boolean = true; 
+  isAddUserExpanded: boolean = false; 
 
   // Variable to store the note currently being previewed
   selectedNotePreview: any | null = null;
