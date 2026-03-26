@@ -1,0 +1,55 @@
+.rating-box {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+/* cos */
+.rating-box h3 {
+  margin-top: 0;
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.slider-group {
+  margin-bottom: 25px;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.label-row label {
+  font-weight: bold;
+  color: #555;
+}
+
+.current-emoji {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #3498db;
+}
+
+.emoji-slider {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #3498db; 
+  height: 8px;
+  background: #ddd;
+  border-radius: 4px;
+  outline: none;
+}
+
+.slider-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 1.2rem;
+  color: #999;
+}
