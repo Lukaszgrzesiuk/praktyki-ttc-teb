@@ -16,7 +16,9 @@ export class AdminPanelComponent implements OnInit {
   selectedUser: any | null = null;
   searchQuery: string = '';
   newGroupName: string = '';
-  errorMessage: string | null = null;
+
+  // Variable to store the note currently being previewed
+  selectedNotePreview: any | null = null;
 
   newUser = {
     login: '',
@@ -33,13 +35,13 @@ export class AdminPanelComponent implements OnInit {
   }
 
   loadUsers() {
-    this.errorMessage = null;
     this.adminService.getUsers().subscribe({
       next: (data) => {
         this.users = data;
       },
       error: () => {
-        this.errorMessage = 'Failed to execute: Unauthorized access or server error.';
+        alert('Access denied or server error.');
+        this.router.navigate(['/dashboard']);
       }
     });
   }
@@ -52,52 +54,47 @@ export class AdminPanelComponent implements OnInit {
   selectUser(user: any) {
     this.selectedUser = user;
     this.newGroupName = '';
-    this.errorMessage = null;
+    this.selectedNotePreview = null; // Close preview when changing user
     
     this.adminService.getUserNotes(user.id).subscribe({
       next: (notes) => {
         this.selectedUser.notes = notes;
       },
-      error: (err) => {
-        this.errorMessage = 'Failed to execute: Could not fetch user notes.';
-      }
+      error: (err) => console.error("Failed to fetch notes", err)
     });
   }
 
   addUser() {
-    this.errorMessage = null;
     if (this.newUser.login.trim() && this.newUser.password.trim()) {
       this.adminService.addUser(this.newUser).subscribe({
         next: (res) => {
-          this.loadUsers();
+          alert('User added successfully!');
+          this.loadUsers(); // Reload list
+          // Clear form
           this.newUser = { login: '', password: '', firstName: '', lastName: '', email: '' };
         },
         error: (err) => {
-          this.errorMessage = 'Failed to execute: Username already taken or invalid data.';
+          alert('Error while adding user. Check if login is already taken.');
         }
       });
     } else {
-      this.errorMessage = 'Failed to execute: Login and password are required.';
+      alert('Login and password are required!');
     }
   }
 
   deleteUser() {
-    this.errorMessage = null;
-    if (this.selectedUser && confirm(`Czy na pewno chcesz usunąć użytkownika ${this.selectedUser.name}?`)) {
+    if (this.selectedUser && confirm(`Are you sure you want to delete user ${this.selectedUser.name}?`)) {
       this.adminService.deleteUser(this.selectedUser.id).subscribe({
         next: () => {
           this.users = this.users.filter(u => u.id !== this.selectedUser.id);
           this.selectedUser = null;
         },
-        error: (err) => {
-          this.errorMessage = 'Failed to execute: Could not delete user.';
-        }
+        error: (err) => alert('Error while deleting user.')
       });
     }
   }
 
   addGroup() {
-    this.errorMessage = null;
     if (this.selectedUser && this.newGroupName.trim()) {
       this.adminService.addGroup(this.selectedUser.id, this.newGroupName.trim()).subscribe({
         next: () => {
@@ -105,37 +102,44 @@ export class AdminPanelComponent implements OnInit {
           this.selectedUser.groups.push(this.newGroupName.trim());
           this.newGroupName = '';
         },
-        error: (err) => {
-          this.errorMessage = 'Failed to execute: Could not add group.';
-        }
+        error: (err) => alert('Error while adding group.')
       });
     }
   }
 
   removeGroup(group: string) {
-    this.errorMessage = null;
     if (this.selectedUser) {
       this.adminService.removeGroup(this.selectedUser.id, group).subscribe({
         next: () => {
           this.selectedUser.groups = this.selectedUser.groups.filter((g: string) => g !== group);
         },
-        error: (err) => {
-          this.errorMessage = 'Failed to execute: Could not remove group.';
-        }
+        error: (err) => alert('Error while removing group.')
       });
     }
   }
 
-  removeNote(noteId: number) {
-    this.errorMessage = null;
-    if (this.selectedUser && confirm('Na pewno chcesz usunąć tę notatkę?')) {
+  // Open note preview
+  viewNoteDetails(note: any) {
+    this.selectedNotePreview = note;
+  }
+
+  // Close note preview
+  closeNotePreview() {
+    this.selectedNotePreview = null;
+  }
+
+  removeNote(noteId: number, event: Event) {
+    event.stopPropagation(); // Prevents the preview modal from opening when clicking the "X" button
+    if (this.selectedUser && confirm('Are you sure you want to delete this note?')) {
       this.adminService.deleteNoteAdmin(noteId).subscribe({
         next: () => {
           this.selectedUser.notes = this.selectedUser.notes.filter((n: any) => n.id !== noteId);
+          // If the deleted note was currently being previewed, close the preview
+          if (this.selectedNotePreview?.id === noteId) {
+            this.closeNotePreview();
+          }
         },
-        error: (err) => {
-          this.errorMessage = 'Failed to execute: Could not delete note.';
-        }
+        error: (err) => alert('Error while deleting note.')
       });
     }
   }

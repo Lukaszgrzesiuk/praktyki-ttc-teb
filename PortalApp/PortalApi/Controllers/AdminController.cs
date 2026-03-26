@@ -25,7 +25,7 @@ namespace PortalApi.Controllers
         [HttpGet("users")]
         public async Task<IActionResult> GetUsers([FromQuery] int requesterId)
         {
-            if (!await CheckIfAdmin(requesterId)) return Unauthorized(new { message = "Brak uprawnień." });
+            if (!await CheckIfAdmin(requesterId)) return Unauthorized(new { message = "Access denied." });
 
             var users = new List<object>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -56,7 +56,6 @@ namespace PortalApi.Controllers
             return Ok(users);
         }
 
-        
         [HttpPost("users")]
         public async Task<IActionResult> AddUser([FromQuery] int requesterId, [FromBody] AdminUserCreateDto dto)
         {
@@ -66,13 +65,12 @@ namespace PortalApi.Controllers
             {
                 await conn.OpenAsync();
                 
-                
                 string checkQuery = "SELECT COUNT(*) FROM dbo.user_registration WHERE login_name = @Login";
                 using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
                 {
                     checkCmd.Parameters.AddWithValue("@Login", dto.Login);
                     int count = (int)await checkCmd.ExecuteScalarAsync();
-                    if (count > 0) return BadRequest(new { message = "Użytkownik o takim loginie już istnieje." });
+                    if (count > 0) return BadRequest(new { message = "User with this login already exists." });
                 }
 
                 string query = @"
@@ -82,15 +80,14 @@ namespace PortalApi.Controllers
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    
                     cmd.Parameters.AddWithValue("@Fn", string.IsNullOrWhiteSpace(dto.FirstName) ? "User" : dto.FirstName);
-                    cmd.Parameters.AddWithValue("@Ln", string.IsNullOrWhiteSpace(dto.LastName) ? "Dodany" : dto.LastName);
-                    cmd.Parameters.AddWithValue("@Email", string.IsNullOrWhiteSpace(dto.Email) ? "brak@email.com" : dto.Email);
+                    cmd.Parameters.AddWithValue("@Ln", string.IsNullOrWhiteSpace(dto.LastName) ? "Added" : dto.LastName);
+                    cmd.Parameters.AddWithValue("@Email", string.IsNullOrWhiteSpace(dto.Email) ? "none@email.com" : dto.Email);
                     cmd.Parameters.AddWithValue("@Login", dto.Login);
                     cmd.Parameters.AddWithValue("@Pass", dto.Password);
 
                     int newId = (int)await cmd.ExecuteScalarAsync();
-                    return Ok(new { id = newId, message = "Użytkownik dodany pomyślnie" });
+                    return Ok(new { id = newId, message = "User added successfully" });
                 }
             }
         }
@@ -113,7 +110,7 @@ namespace PortalApi.Controllers
             return NoContent();
         }
 
-        
+        // Fetching notes for a specific user (with details for preview)
         [HttpGet("users/{userId}/notes")]
         public async Task<IActionResult> GetUserNotes(int userId, [FromQuery] int requesterId)
         {
@@ -123,7 +120,14 @@ namespace PortalApi.Controllers
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
-                string query = "SELECT Id, Title FROM dbo.Notes WHERE author_id = @UserId";
+                // Fetching extra data to display in the note preview modal
+                string query = @"
+                    SELECT Id, Title, Content, CreationDate, HelpfulnessRating, 
+                           CreationEaseRating, PhotoUrl, VideoUrl, AudioUrl 
+                    FROM dbo.Notes 
+                    WHERE author_id = @UserId 
+                    ORDER BY CreationDate DESC";
+
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@UserId", userId);
@@ -133,7 +137,14 @@ namespace PortalApi.Controllers
                         {
                             notes.Add(new {
                                 id = reader.GetInt32(0),
-                                title = reader.GetString(1)
+                                title = reader.GetString(1),
+                                content = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                                creationDate = reader.GetDateTime(3),
+                                helpfulnessRating = reader.IsDBNull(4) ? null : (byte?)reader.GetByte(4),
+                                creationEaseRating = reader.IsDBNull(5) ? null : (byte?)reader.GetByte(5),
+                                photoUrl = reader.IsDBNull(6) ? null : reader.GetString(6),
+                                videoUrl = reader.IsDBNull(7) ? null : reader.GetString(7),
+                                audioUrl = reader.IsDBNull(8) ? null : reader.GetString(8)
                             });
                         }
                     }
@@ -142,7 +153,6 @@ namespace PortalApi.Controllers
             return Ok(notes);
         }
 
-        
         [HttpDelete("notes/{noteId}")]
         public async Task<IActionResult> DeleteNoteAdmin(int noteId, [FromQuery] int requesterId)
         {
@@ -238,7 +248,6 @@ namespace PortalApi.Controllers
         }
     }
 
-    
     public class AdminUserCreateDto
     {
         public string Login { get; set; } = string.Empty;

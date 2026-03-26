@@ -21,23 +21,20 @@
 
     <div class="add-user-section">
       <h3>Add New User</h3>
-      <input type="text" [(ngModel)]="newUser.login" placeholder="Login (required)*">
-      <input type="password" [(ngModel)]="newUser.password" placeholder="Hasło (required)*">
-      <input type="text" [(ngModel)]="newUser.firstName" placeholder="first name (optional)">
-      <input type="text" [(ngModel)]="newUser.lastName" placeholder="last name (optional)">
-      <input type="text" [(ngModel)]="newUser.email" placeholder="e-mail (optional)">
+      <input type="text" [(ngModel)]="newUser.login" placeholder="Login (Required)*">
+      <input type="password" [(ngModel)]="newUser.password" placeholder="Password (Required)*">
+      <input type="text" [(ngModel)]="newUser.firstName" placeholder="First Name (Optional)">
+      <input type="text" [(ngModel)]="newUser.lastName" placeholder="Last Name (Optional)">
+      <input type="text" [(ngModel)]="newUser.email" placeholder="Email (Optional)">
       <button class="btn-primary" (click)="addUser()">Add User</button>
       
-      <button class="btn-secondary" style="margin-top: 15px;" (click)="goBack()">Back to Dashboard </button>
+      <button class="btn-secondary" style="margin-top: 15px;" (click)="goBack()">Back to Dashboard</button>
     </div>
   </aside>
 
   <main class="user-details">
-    @if (errorMessage) {
-      <div class="error-alert" style="margin-bottom: 20px;">{{ errorMessage }}</div>
-    }
-
     @if (selectedUser) {
+      
       <header class="detail-header">
         <h2>Managing: {{ selectedUser.name }}</h2>
         <div class="header-actions">
@@ -69,9 +66,9 @@
           <h3>Notes</h3>
           <ul>
             @for (note of selectedUser.notes; track note.id) {
-              <li>
+              <li (click)="viewNoteDetails(note)" style="cursor: pointer; transition: background 0.2s;">
                 <span>{{ note.title }}</span>
-                <button class="btn-icon" (click)="removeNote(note.id)">❌</button>
+                <button class="btn-icon" (click)="removeNote(note.id, $event)">❌</button>
               </li>
             } @empty {
               <li class="empty-msg">No notes created by this user.</li>
@@ -87,3 +84,42 @@
     }
   </main>
 </div>
+
+@if (selectedNotePreview) {
+  <div class="note-modal-overlay" (click)="closeNotePreview()">
+    <div class="note-modal-content" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h3>{{ selectedNotePreview.title }}</h3>
+        <button class="close-btn" (click)="closeNotePreview()">✕</button>
+      </header>
+      <div class="modal-body">
+        <p class="meta-info">Created: {{ selectedNotePreview.creationDate | date:'short' }}</p>
+        <p class="meta-info">
+          Helpfulness: {{ selectedNotePreview.helpfulnessRating || '-' }}/10 | 
+          Ease: {{ selectedNotePreview.creationEaseRating || '-' }}/10
+        </p>
+        <div class="note-text">
+          {{ selectedNotePreview.content }}
+        </div>
+        
+        @if (selectedNotePreview.photoUrl || selectedNotePreview.videoUrl || selectedNotePreview.audioUrl) {
+          <div class="note-media">
+            @if (selectedNotePreview.photoUrl) {
+              <img [src]="'http://localhost:5000' + selectedNotePreview.photoUrl" alt="Photo" class="preview-media">
+            }
+            @if (selectedNotePreview.videoUrl) {
+              <video controls class="preview-media">
+                <source [src]="'http://localhost:5000' + selectedNotePreview.videoUrl" type="video/mp4">
+              </video>
+            }
+            @if (selectedNotePreview.audioUrl) {
+              <audio controls class="preview-media" style="width: 100%;">
+                <source [src]="'http://localhost:5000' + selectedNotePreview.audioUrl" type="audio/mpeg">
+              </audio>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
