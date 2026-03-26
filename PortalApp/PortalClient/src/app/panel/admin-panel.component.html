@@ -1,25 +1,30 @@
 <div class="admin-dashboard">
   
   <aside class="user-sidebar">
-    <div class="sidebar-header">
+    <div class="sidebar-header" (click)="isUserListExpanded = !isUserListExpanded" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
       <h2>User List</h2>
+      <span [style.transform]="isUserListExpanded ? 'rotate(180deg)' : 'rotate(0deg)'" style="display: inline-block; transition: transform 0.3s; font-size: 0.9rem;">▼</span>
     </div>
     
-    <div class="search-box">
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Search user...">
-    </div>
+    @if (isUserListExpanded) {
+      <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+        <div class="search-box">
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Search user...">
+        </div>
 
-    <ul class="user-list">
-      @for (user of filteredUsers; track user.id) {
-        <li (click)="selectUser(user)" [class.active]="selectedUser?.id === user.id">
-          {{ user.name }} ({{ user.login }})
-        </li>
-      } @empty {
-        <li class="empty-msg">No users found.</li>
-      }
-    </ul>
+        <ul class="user-list">
+          @for (user of filteredUsers; track user.id) {
+            <li (click)="selectUser(user)" [class.active]="selectedUser?.id === user.id">
+              {{ user.name }} ({{ user.login }})
+            </li>
+          } @empty {
+            <li class="empty-msg">No users found.</li>
+          }
+        </ul>
+      </div>
+    }
 
-    <div class="add-user-section">
+    <div class="add-user-section" style="margin-top: auto;">
       <h3>Add New User</h3>
       <input type="text" [(ngModel)]="newUser.login" placeholder="Login (Required)*">
       <input type="password" [(ngModel)]="newUser.password" placeholder="Password (Required)*">
@@ -48,7 +53,7 @@
           <h3>Groups</h3>
           <div class="add-box" style="margin-bottom: 15px; display: flex; gap: 10px;">
             <input type="text" [(ngModel)]="newGroupName" placeholder="Group name..." style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1;">
-            <button class="btn-secondary" (click)="addGroup()">Add</button>
+            <button class="btn-blue" (click)="addGroup()">Add</button>
           </div>
           <ul>
             @for (group of selectedUser.groups; track group) {
